@@ -89,9 +89,9 @@ story.append(HRFlowable(width="100%", thickness=1, color=BLACK, spaceBefore=6, s
 # Summary
 story.append(section_header("SUMMARY"))
 story.append(Paragraph(
-    "Frontend-focused Software Engineer with 5+ years of experience building scalable web applications "
-    "using React, Next.js, and TypeScript. Proven track record of leading frontend initiatives, improving "
-    "performance, and delivering high-quality user experiences at scale.",
+    "Frontend Engineer with 5+ years of experience specializing in scalable React + TypeScript applications. "
+    "Proven track record of leading frontend modernization initiatives, improving performance by up to 40%, and building reusable UI systems that accelerate development. "
+    "Experienced in architecting production-grade applications, collaborating across teams, and driving high-impact user experiences.",
     S_SUMMARY
 ))
 
@@ -126,16 +126,16 @@ story.append(section_header("EXPERIENCE"))
 
 jobs = [
     ("Software Engineer",           "SourceFuse",             "Feb 2025 – Present",
-     ["Led frontend architecture for AI-driven applications using React + TypeScript, improving scalability by ~40%",
-      "Built reusable component systems, reducing feature development time by 30%+",
-      "Implemented authentication and session management, reducing redundant API calls by 25%",
-      "Collaborated with cross-functional teams to deliver production-ready features with 99%+ uptime"]),
+     ['Led frontend architecture for AI-driven applications using React + TypeScript, improving scalability by ~40%',
+          'Designed and implemented reusable component systems, accelerating feature delivery by 30%+',
+          'Led frontend modernization from legacy systems to React-based architecture across multiple projects',
+          'Optimized authentication and session management, reducing redundant API calls by 25%',
+          'Drove frontend best practices and architectural decisions for production-scale systems']),
     ("Software Engineer",           "Kfaqs Infotech Pvt Ltd", "Feb 2022 – Sep 2024",
-     ["Developed and maintained 5+ production web applications using React and Redux",
-      "Integrated REST & GraphQL APIs, reducing data-fetch latency by 20–30%",
-      "Delivered pixel-perfect UI from Figma, improving user engagement and consistency",
-      "Optimized performance via lazy loading & code splitting, improving page load speed by 35%",
-      "Resolved critical bugs and reduced production issues by 40%"]),
+     [ 'Built and maintained 5+ production-grade web applications using React and Redux',
+          'Integrated REST & GraphQL APIs, reducing data-fetch latency by 20–30%',
+          'Improved performance via lazy loading and code splitting, reducing page load time by 35%',
+          'Reduced production issues by 40% through proactive debugging and stability improvements',]),
     ("Associate Software Engineer", "TCS",                    "Jan 2021 – Feb 2022",
      ["Built XML/XSL-based validation systems for banking workflows handling high-volume transactions",
       "Automated scripts and APIs, reducing manual effort by 30%",
