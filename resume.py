@@ -2,7 +2,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable, Table, TableStyle, KeepTogether
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
 
 OUTPUT = "E:\\Personal\\Projects\\resume_generator\\Faiyazuddin_Resume.pdf"
@@ -94,10 +94,10 @@ story.append(HRFlowable(width="100%", thickness=1, color=BLACK, spaceBefore=6, s
 # Summary
 story.append(section_header("SUMMARY"))
 story.append(Paragraph(
-    "Frontend Engineer with 5+ years of experience building production React and TypeScript applications. "
-    "Skilled in frontend architecture, reusable component systems, performance optimization, API integration, "
-    "and frontend modernization. Experienced in leading frontend initiatives, mentoring developers, and collaborating "
-    "with design and backend teams to deliver scalable user experiences.",
+    "Frontend Engineer with 5+ years of experience building and leading production React and TypeScript applications. "
+    "Strong in frontend architecture, reusable component systems, performance optimization, and large-scale migrations "
+    "from legacy platforms. Experienced in mentoring junior developers and collaborating with design and backend teams "
+    "to deliver scalable, maintainable user experiences.",
     S_SUMMARY
 ))
 
@@ -106,13 +106,12 @@ story.append(divider())
 story.append(section_header("SKILLS"))
 
 skills = [
-    ("Languages",  "JavaScript, TypeScript"),
-    ("Frontend",   "React.js, Next.js, Redux, Frontend Architecture"),
-    ("UI",         "Material-UI (MUI), Tailwind CSS, HTML, CSS, Responsive Design"),
-    ("Engineering", "Reusable Components, Performance Optimization, Code Splitting"),
-    ("APIs",       "REST, GraphQL, Authentication, Session Management"),
-    ("Tools",      "Git, Jira, Figma, Firebase, Auth0, Supabase"),
-    ("Databases",  "MongoDB, MySQL, ElasticSearch"),
+    ("Core",       "React.js, TypeScript, Next.js, Redux, TanStack Query, Frontend Architecture"),
+    ("UI",         "Tailwind CSS, Material-UI (MUI), HTML, CSS, Responsive Design, Accessibility (a11y)"),
+    ("Engineering", "Reusable Component Systems, Performance Optimization, Code Splitting, Testing (Jest)"),
+    ("Data & APIs", "REST, GraphQL, Charting Libraries, Table Libraries"),
+    ("Auth & Tools", "Authentication, Authorization, Session Management, Git, Jira, Figma, Auth0"),
+    ("Additional", "JavaScript, Firebase, Supabase, MongoDB, MySQL, ElasticSearch"),
 ]
 for label, val in skills:
     row = Table(
@@ -133,16 +132,18 @@ story.append(section_header("EXPERIENCE"))
 
 jobs = [
     ("Software Engineer",           "SourceFuse",             "Feb 2025 – Jun 2026",
-    ['Led frontend architecture for AI-driven applications using React + TypeScript, supporting scalable production systems',
-        'Designed and implemented reusable component systems to make feature development more consistent and efficient',
+    ['Led frontend architecture for AI-driven applications using React + TypeScript, enabling scalable production systems',
+        'Designed and implemented reusable component systems that improved consistency and speed of feature development',
           'Led frontend modernization from legacy systems to React-based architecture across multiple projects',
-        'Optimized authentication and session management to reduce redundant API calls',
-          'Drove frontend best practices, architectural decisions, and developer collaboration for production-scale systems']),
+                'Optimized authentication and session management to reduce redundant API calls and improve user experience',
+                    'Established frontend best practices, architectural guidelines, and collaboration patterns for production-scale delivery']),
+    ("Career Break",               "Personal / Family Responsibilities", "Oct 2024 – Jan 2025",
+     ["Took a planned career break to manage family responsibilities before returning to software engineering"]),
     ("Software Engineer",           "Kfaqs Infotech Pvt Ltd", "Feb 2022 – Sep 2024",
-     [ 'Built and maintained 5+ production-grade web applications using React and Redux',
-        'Integrated REST and GraphQL APIs across production web applications',
-        'Improved performance through lazy loading, code splitting, and frontend optimization',
-        'Reduced production issues through proactive debugging and stability improvements',]),
+      [ 'Built and maintained 5+ production web applications using React and Redux',
+          'Integrated REST and GraphQL APIs across multiple production applications',
+          'Improved application performance through lazy loading, code splitting, and frontend optimization techniques',
+          'Strengthened application stability through proactive debugging and issue resolution',]),
     ("Associate Software Engineer", "TCS",                    "Jan 2021 – Feb 2022",
      ["Built XML/XSL-based validation systems for banking workflows handling high-volume transactions",
             "Automated scripts and APIs to simplify recurring banking workflow tasks",
@@ -160,30 +161,40 @@ story.append(divider())
 story.append(section_header("PROJECTS"))
 
 projects = [
-    ("AI Chat Platform",       "Rakuten  ·  React.js, TypeScript, Material-UI, Python",
-     "Built a production-grade AI chat system from scratch for real-time conversational workflows.",
-         ["Designed modular frontend architecture and reusable UI patterns",
-            "Replaced legacy APIs with a session-based architecture to simplify data flow",
-      "Migrated styling to MUI theme system, reducing UI inconsistencies"]),
-    ("Topia Web App",          "Frontend Lead  ·  React.js, TypeScript, Material-UI, MonoUI",
-         "Led frontend modernization and improved UI consistency across modules.",
-         ["Developed reusable components to reduce duplication across modules",
-      "Mentored team members, improving delivery efficiency and reducing rework"]),
-    ("Nuvama Web App",         "Frontend Lead  ·  React, TypeScript, Material-UI",
-         "Led migration from legacy .NET WebForms to React and improved performance across key workflows.",
-     ["Improved page responsiveness and user experience across key workflows",
-      "Established frontend best practices, reducing technical debt significantly"]),
-    ("Carbon Emission Tracker","React, GraphQL, TypeScript",
-     "Scalable dashboard handling large datasets with GraphQL.",
-         ["Optimized rendering and state management for large datasets",
-      "Implemented predictive insights improving usability and decision-making"]),
+    ("AI Chat Platform",       "Rakuten  ·  Frontend Lead (1 junior developer)  ·  React.js, TypeScript, Tailwind CSS, TanStack Query, Charting and Table Libraries, Python",
+     "Led frontend development with one junior developer for an AI-powered reporting platform that helps users generate insights faster than manually reviewing large sets of reports.",
+     ["Designed a response-driven React component architecture that renders tables, charts, SQL results, and PDF newsletters based on backend responses",
+      "Built authentication, authorization, and session management with frontend token handling for secure user workflows",
+      "Implemented a real-time session sidebar supporting session creation, renaming, deletion, and switching across concurrent users",
+    "Developed the interface using React, TypeScript, Tailwind CSS, TanStack Query for API data fetching, and charting and table libraries"]),
+        ("Topia Web App",          "Frontend Lead (team of 3, incl. 2 junior developers)  ·  React.js, TypeScript, Redux, Tailwind CSS, TanStack Query",
+         "Led the frontend migration of a complex enterprise application from .NET to React while preserving the existing user experience and coordinating with full-stack developers migrating backend services to Java.",
+         ["Led a frontend team of three developers, including two junior developers, and coordinated implementation across interconnected application modules",
+            "Decomposed the legacy application into independently deliverable React components and defined an incremental migration architecture",
+            "Recreated existing workflows and designs in React using Redux, Tailwind CSS, and TanStack Query for API data fetching",
+            "Integrated third-party authentication and authorization while coordinating frontend changes with backend API migration"]),
+        ("Nuvama Web App",         "Frontend Lead  ·  React, TypeScript, Material-UI, Redux, GraphQL",
+         "Led the migration of a complex .NET web application to React by analyzing the legacy architecture, mapping interconnected components, and defining an incremental frontend delivery plan.",
+         ["Worked with one junior developer, providing technical guidance and training throughout the migration",
+            "Owned frontend migration planning, ticket breakdown, and sprint execution across the identified component areas",
+            "Rebuilt legacy workflows with React, Material-UI, Redux, and GraphQL while maintaining consistent user experiences",
+            "Established reusable component patterns and frontend implementation standards for the migrated application"]),
+    ("Carbon Emission Tracker","React, GraphQL, TypeScript  ·  Enterprise emissions dashboard",
+         "Built a carbon accounting platform for enterprise customers to calculate emissions from vehicles, machines, factories, and other operational inputs against regulatory thresholds.",
+         ["Developed a dashboard with interactive charts, data visualizations, and tables for reviewing categorized emission data",
+            "Implemented Excel upload and categorization workflows for industry data such as food production, vehicles, and manufacturing",
+            "Supported long-running report generation for large datasets with a real-time progress timer powered by GraphQL subscriptions",
+            "Added Jest component tests and accessibility improvements as part of the frontend quality and delivery standards"]),
 ]
 
 for i, (title, sub, desc, blist) in enumerate(projects):
-    story.append(Paragraph(title, S_JOBTITLE))
-    story.append(Paragraph(sub, S_COMPANY))
-    story.append(Paragraph(desc, S_PROJDESC))
-    story.extend(bullets(blist))
+    project_content = [
+        Paragraph(title, S_JOBTITLE),
+        Paragraph(sub, S_COMPANY),
+        Paragraph(desc, S_PROJDESC),
+        *bullets(blist),
+    ]
+    story.append(KeepTogether(project_content))
     if i < len(projects) - 1:
         story.append(Spacer(1, 3))
 
