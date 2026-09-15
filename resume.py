@@ -31,6 +31,7 @@ def style(name, **kw):
 
 S_NAME     = style("Name",    fontSize=16, fontName="Helvetica-Bold", alignment=TA_CENTER, leading=20, spaceAfter=2)
 S_CONTACT  = style("Contact", fontSize=8.0, textColor=GRAY, alignment=TA_CENTER, spaceAfter=0)
+S_HEADLINE = style("Headline", fontSize=9.2, fontName="Helvetica-Bold", textColor=GRAY, alignment=TA_CENTER, leading=12, spaceAfter=2)
 S_SECTION  = style("Section", fontSize=8.8,fontName="Helvetica-Bold", leftIndent=0)
 S_JOBTITLE = style("JobTitle",fontSize=9.2,fontName="Helvetica-Bold", spaceAfter=0, leftIndent=0)
 S_COMPANY  = style("Company", fontSize=8.8,textColor=GRAY, spaceAfter=1, leftIndent=0)
@@ -78,9 +79,13 @@ story = []
 # Header
 story.append(Paragraph("Md Faiyazuddin Siddique", S_NAME))
 story.append(Paragraph(
+    "Frontend Engineer  |  React  |  TypeScript  |  Next.js  |  Frontend Architecture",
+    S_HEADLINE
+))
+story.append(Paragraph(
     'Muzaffarpur, India  |  faiyazsiddique9@gmail.com  |  +91-8709442967  '
     '|  <link href="https://faiyazuddin.netlify.app/" color="#2563eb">Portfolio</link>  '
-    '|  <link href="https://linkedin.com/in/md-faiyazuddin-siddique" color="#2563eb">LinkedIn</link>  '
+    '|  <link href="https://www.linkedin.com/in/md-faiyazuddin-siddique-244a73192/" color="#2563eb">LinkedIn</link>  '
     '|  <link href="https://github.com/Faizee095" color="#2563eb">GitHub</link>',
     S_CONTACT
 ))
@@ -89,9 +94,10 @@ story.append(HRFlowable(width="100%", thickness=1, color=BLACK, spaceBefore=6, s
 # Summary
 story.append(section_header("SUMMARY"))
 story.append(Paragraph(
-    "Frontend Engineer with 5+ years of experience specializing in scalable React + TypeScript applications. "
-    "Proven track record of leading frontend modernization initiatives, improving performance by up to 40%, and building reusable UI systems that accelerate development. "
-    "Experienced in architecting production-grade applications, collaborating across teams, and driving high-impact user experiences.",
+    "Frontend Engineer with 5+ years of experience building production React and TypeScript applications. "
+    "Skilled in frontend architecture, reusable component systems, performance optimization, API integration, "
+    "and frontend modernization. Experienced in leading frontend initiatives, mentoring developers, and collaborating "
+    "with design and backend teams to deliver scalable user experiences.",
     S_SUMMARY
 ))
 
@@ -101,9 +107,10 @@ story.append(section_header("SKILLS"))
 
 skills = [
     ("Languages",  "JavaScript, TypeScript"),
-    ("Frontend",   "React.js, Next.js, Redux"),
-    ("UI",         "Material-UI (MUI), Tailwind CSS, HTML, CSS"),
-    ("APIs",       "REST, GraphQL"),
+    ("Frontend",   "React.js, Next.js, Redux, Frontend Architecture"),
+    ("UI",         "Material-UI (MUI), Tailwind CSS, HTML, CSS, Responsive Design"),
+    ("Engineering", "Reusable Components, Performance Optimization, Code Splitting"),
+    ("APIs",       "REST, GraphQL, Authentication, Session Management"),
     ("Tools",      "Git, Jira, Figma, Firebase, Auth0, Supabase"),
     ("Databases",  "MongoDB, MySQL, ElasticSearch"),
 ]
@@ -125,20 +132,20 @@ story.append(divider())
 story.append(section_header("EXPERIENCE"))
 
 jobs = [
-    ("Software Engineer",           "SourceFuse",             "Feb 2025 – Present",
-     ['Led frontend architecture for AI-driven applications using React + TypeScript, improving scalability by ~40%',
-          'Designed and implemented reusable component systems, accelerating feature delivery by 30%+',
+    ("Software Engineer",           "SourceFuse",             "Feb 2025 – Jun 2026",
+    ['Led frontend architecture for AI-driven applications using React + TypeScript, supporting scalable production systems',
+        'Designed and implemented reusable component systems to make feature development more consistent and efficient',
           'Led frontend modernization from legacy systems to React-based architecture across multiple projects',
-          'Optimized authentication and session management, reducing redundant API calls by 25%',
-          'Drove frontend best practices and architectural decisions for production-scale systems']),
+        'Optimized authentication and session management to reduce redundant API calls',
+          'Drove frontend best practices, architectural decisions, and developer collaboration for production-scale systems']),
     ("Software Engineer",           "Kfaqs Infotech Pvt Ltd", "Feb 2022 – Sep 2024",
      [ 'Built and maintained 5+ production-grade web applications using React and Redux',
-          'Integrated REST & GraphQL APIs, reducing data-fetch latency by 20–30%',
-          'Improved performance via lazy loading and code splitting, reducing page load time by 35%',
-          'Reduced production issues by 40% through proactive debugging and stability improvements',]),
+        'Integrated REST and GraphQL APIs across production web applications',
+        'Improved performance through lazy loading, code splitting, and frontend optimization',
+        'Reduced production issues through proactive debugging and stability improvements',]),
     ("Associate Software Engineer", "TCS",                    "Jan 2021 – Feb 2022",
      ["Built XML/XSL-based validation systems for banking workflows handling high-volume transactions",
-      "Automated scripts and APIs, reducing manual effort by 30%",
+            "Automated scripts and APIs to simplify recurring banking workflow tasks",
       "Contributed to frontend modules using React, improving UI responsiveness"]),
 ]
 
@@ -155,20 +162,20 @@ story.append(section_header("PROJECTS"))
 projects = [
     ("AI Chat Platform",       "Rakuten  ·  React.js, TypeScript, Material-UI, Python",
      "Built a production-grade AI chat system from scratch for real-time conversational workflows.",
-     ["Designed modular frontend architecture, improving code reusability by 40%",
-      "Replaced legacy APIs with session-based architecture, reducing API calls by 25%",
+         ["Designed modular frontend architecture and reusable UI patterns",
+            "Replaced legacy APIs with a session-based architecture to simplify data flow",
       "Migrated styling to MUI theme system, reducing UI inconsistencies"]),
     ("Topia Web App",          "Frontend Lead  ·  React.js, TypeScript, Material-UI, MonoUI",
-     "Led frontend modernization, improving UI consistency across modules by 50%.",
-     ["Developed reusable components, reducing duplication by 30%",
+         "Led frontend modernization and improved UI consistency across modules.",
+         ["Developed reusable components to reduce duplication across modules",
       "Mentored team members, improving delivery efficiency and reducing rework"]),
     ("Nuvama Web App",         "Frontend Lead  ·  React, TypeScript, Material-UI",
-     "Led migration from legacy .NET WebForms to React, improving performance by ~40%.",
+         "Led migration from legacy .NET WebForms to React and improved performance across key workflows.",
      ["Improved page responsiveness and user experience across key workflows",
       "Established frontend best practices, reducing technical debt significantly"]),
     ("Carbon Emission Tracker","React, GraphQL, TypeScript",
      "Scalable dashboard handling large datasets with GraphQL.",
-     ["Optimized rendering and state management, improving performance by 30%+",
+         ["Optimized rendering and state management for large datasets",
       "Implemented predictive insights improving usability and decision-making"]),
 ]
 
@@ -197,16 +204,6 @@ edu.setStyle(TableStyle([
     ("BOTTOMPADDING", (0,0),(-1,-1), 0),
 ]))
 story.append(edu)
-
-story.append(divider())
-story.append(section_header("STRENGTHS"))
-strengths = [
-    "Strong ownership mindset (proven in Rakuten project leadership)",
-    "Ability to lead frontend architecture and mentor developers",
-    "Focus on clean code, scalability, and performance",
-    "Excellent collaboration with design and backend teams",
-]
-story.extend(bullets(strengths))
 
 doc.build(story)
 print("Done:", OUTPUT)
