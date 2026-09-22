@@ -178,25 +178,25 @@ story.append(divider())
 story.append(section_header("EXPERIENCE"))
 jobs = [
     ("Software Engineer", "SourceFuse", "Feb 2025 - Jun 2026", [
-        "Built production React and TypeScript features for AI-driven applications and connected them to backend services",
-        "Developed backend features in Node.js and Express, including request handling, authentication, and session-related workflows",
-        "Integrated APIs for data fetching, report generation, user workflows, and structured AI responses",
-        "Helped establish frontend and backend collaboration patterns for maintainable production delivery",
-        "Improved authentication and session flows by reducing redundant requests and clarifying client-side state handling",
+        "Led frontend development for AI-driven applications using React and TypeScript",
+        "Designed reusable component systems and frontend patterns for scalable production delivery",
+        "Built API-connected workflows for data fetching, report generation, user actions, and structured AI responses",
+        "Developed selected Node.js and Express features for request handling, authentication, and session workflows",
+        "Improved authentication and session experiences by reducing redundant requests and clarifying client-side state handling",
     ]),
     ("Career Break", "Personal / Family Responsibilities", "Oct 2024 - Jan 2025", [
         "Took a planned career break to manage family responsibilities before returning to software engineering",
     ]),
     ("Software Engineer", "Kfaqs Infotech Pvt Ltd", "Feb 2022 - Sep 2024", [
-        "Built and maintained production web applications using React and Redux",
+        "Built and maintained production web applications using React, Redux, and reusable frontend patterns",
+        "Improved application performance through frontend optimization and reliable user workflows",
         "Integrated REST and GraphQL APIs across multiple application workflows",
-        "Implemented backend features for CRUD workflows, request and response handling, validation, and issue resolution",
-        "Worked with backend developers to troubleshoot API behavior and deliver connected features",
+        "Implemented backend features for selected CRUD workflows, request handling, validation, and issue resolution",
     ]),
     ("Associate Software Engineer", "TCS", "Jan 2021 - Feb 2022", [
-        "Built XML/XSL-based validation systems supporting high-volume banking workflows",
-        "Automated recurring banking workflow tasks using scripts and APIs",
         "Contributed to React modules and API-connected user workflows",
+        "Built XML/XSL-based validation interfaces and systems for high-volume banking workflows",
+        "Automated recurring banking workflow tasks using scripts and APIs",
     ]),
 ]
 for index, (title, company, duration, job_bullets) in enumerate(jobs):
@@ -214,10 +214,10 @@ projects = [
         "Rakuten  |  React, TypeScript, Node.js, Express, GraphQL",
         "AI-powered reporting platform that turns user requests into structured reports, charts, SQL results, and PDF newsletters.",
         [
-            "Built API-connected interfaces for chat, report generation, tables, charts, SQL results, and newsletter outputs",
-            "Implemented session workflows for creating, renaming, deleting, and switching between chat and report sessions",
-            "Developed backend APIs to receive user queries and coordinate AI and report-generation steps",
-            "Implemented JWT authentication, authorization, token handling, and session management workflows",
+            "Led frontend development for chat, report generation, tables, charts, SQL results, and newsletter outputs",
+            "Designed response-driven React components that render different result types from backend responses",
+            "Implemented session interfaces for creating, renaming, deleting, and switching between chat and report sessions",
+            "Developed supporting APIs and implemented JWT authentication, authorization, and session workflows",
         ],
     ),
     (
@@ -225,9 +225,10 @@ projects = [
         "Enterprise application  |  React, TypeScript, Node.js, Express, REST APIs",
         "Incremental migration of a complex enterprise application from .NET to React while backend services moved to Java.",
         [
-            "Implemented API-connected modules and CRUD-style user workflows during the migration",
-            "Coordinated frontend requests and response handling with full-stack developers migrating backend services",
-            "Implemented authentication and authorization changes across frontend and backend boundaries",
+            "Led the frontend migration of interconnected enterprise workflows from .NET to React",
+            "Decomposed legacy screens into reusable components and implemented CRUD-style user workflows",
+            "Integrated REST APIs and coordinated request/response behavior with backend developers",
+            "Implemented frontend authentication and authorization flows during the backend service migration",
         ],
     ),
     (
@@ -235,10 +236,10 @@ projects = [
         "Enterprise application  |  React, TypeScript, Material-UI, Redux, GraphQL",
         "Migration of a complex .NET web application to React with API-connected workflows and coordinated backend feature delivery.",
         [
-            "Rebuilt legacy workflows with React, Redux, and GraphQL while maintaining existing user experiences",
-            "Contributed to backend API development and request/response workflows for migrated application modules",
-            "Worked with backend developers on authentication, authorization, and feature delivery across application boundaries",
-            "Established reusable component and API-consumption patterns for the migrated application",
+            "Led the frontend migration of legacy workflows using React, Redux, and Material-UI",
+            "Recreated interconnected screens and maintained consistent user experiences across the migration",
+            "Integrated GraphQL workflows and established reusable component and API-consumption patterns",
+            "Contributed to authentication and authorization changes across frontend and backend boundaries",
         ],
     ),
     (
@@ -246,9 +247,9 @@ projects = [
         "Enterprise dashboard  |  React, TypeScript, Node.js, Express, GraphQL",
         "Carbon accounting platform for calculating emissions from vehicles, machines, factories, and other operational sources.",
         [
-            "Implemented data-entry, categorization, and Excel upload workflows backed by API requests",
-            "Implemented backend report requests and long-running report generation with real-time progress updates",
-            "Worked with GraphQL queries and subscriptions for dashboard data and process status",
+            "Built interactive dashboards with charts, data visualizations, and tables for categorized emission data",
+            "Implemented data-entry, categorization, and Excel upload workflows for enterprise users",
+            "Connected GraphQL queries and subscriptions to long-running report generation and real-time progress updates",
         ],
     ),
 ]
