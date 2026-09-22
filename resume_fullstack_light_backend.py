@@ -25,7 +25,7 @@ day_suffix = "th" if 10 < today.day % 100 < 14 else {
     3: "rd",
 }.get(today.day % 10, "th")
 date_label = f"{today.day}{day_suffix}{today.strftime('%B%Y')}"
-OUTPUT = PROJECT_DIR / f"Faiyazuddin_Fullstack Light Backend_{date_label}.pdf"
+OUTPUT = PROJECT_DIR / f"Faiyazuddin_Fullstack Frontend Lead_{date_label}.pdf"
 
 
 doc = SimpleDocTemplate(
@@ -125,7 +125,7 @@ story = []
 # Header
 story.append(Paragraph("Md Faiyazuddin Siddique", S_NAME))
 story.append(Paragraph(
-    "Full Stack Developer  |  React  |  TypeScript  |  Node.js  |  REST APIs  |  Auth and Sessions",
+    "Full Stack Developer  |  Frontend Lead  |  React  |  TypeScript  |  Node.js  |  REST APIs",
     S_HEADLINE,
 ))
 story.append(Paragraph(
@@ -140,10 +140,9 @@ story.append(HRFlowable(width="100%", thickness=1, color=BLACK, spaceBefore=6, s
 # Summary
 story.append(section_header("SUMMARY"))
 story.append(Paragraph(
-    "Software Engineer with 5+ years of experience building production web applications, primarily with React and TypeScript. "
-    "Hands-on backend development experience with REST and GraphQL APIs, CRUD workflows, request handling, authentication, "
-    "authorization, and session management. Comfortable working across the stack to build backend features and connect user workflows "
-    "to reliable APIs.",
+    "Full Stack Developer with 5+ years of experience building production web applications and leading frontend delivery with React "
+    "and TypeScript. Experienced in frontend architecture, reusable systems, migrations, and mentoring developers, with hands-on "
+    "backend development across REST and GraphQL APIs, CRUD workflows, request handling, authentication, and session management.",
     S_SUMMARY,
 ))
 
@@ -151,12 +150,12 @@ story.append(Paragraph(
 story.append(divider())
 story.append(section_header("SKILLS"))
 skills = [
-    ("Backend", "Node.js, Express.js, REST APIs, GraphQL, Request Handling, API Integration"),
-    ("Data Workflows", "CRUD Operations, Validation, Report Requests, File Uploads, SQL Result Handling"),
-    ("Auth", "JWT Authentication, Authorization, Token Handling, Session Management"),
-    ("Frontend", "React.js, TypeScript, Next.js, Redux, TanStack Query"),
-    ("Data and Tools", "Firebase, Supabase, MongoDB, MySQL, Git, Jira, Figma"),
-    ("Quality", "Debugging, Jest, Accessibility, Performance Optimization, Code Review"),
+    ("Core", "React.js, TypeScript, Next.js, Redux, TanStack Query, Frontend Architecture"),
+    ("UI", "Tailwind CSS, Material-UI (MUI), HTML, CSS, Responsive Design, Accessibility (a11y)"),
+    ("Engineering", "Reusable Component Systems, Performance Optimization, Code Splitting, Testing (Jest)"),
+    ("Data and APIs", "REST, GraphQL, Charting Libraries, Table Libraries, API Integration"),
+    ("Backend", "Node.js, Express.js, CRUD Operations, Request Handling, Validation, Report Workflows"),
+    ("Auth and Tools", "JWT Authentication, Authorization, Session Management, Git, Jira, Figma, Auth0"),
 ]
 for label, value in skills:
     row = Table(
@@ -178,19 +177,21 @@ story.append(divider())
 story.append(section_header("EXPERIENCE"))
 jobs = [
     ("Software Engineer", "SourceFuse", "Feb 2025 - Jun 2026", [
-        "Led frontend development for AI-driven applications using React and TypeScript",
-        "Designed reusable component systems and frontend patterns for scalable production delivery",
+        "Led frontend architecture for AI-driven applications using React and TypeScript, enabling scalable production systems",
+        "Designed and implemented reusable component systems that improved consistency and speed of feature development",
+        "Led frontend modernization from legacy systems to React-based architecture across multiple projects",
         "Built API-connected workflows for data fetching, report generation, user actions, and structured AI responses",
         "Developed selected Node.js and Express features for request handling, authentication, and session workflows",
-        "Improved authentication and session experiences by reducing redundant requests and clarifying client-side state handling",
+        "Optimized authentication and session experiences to reduce redundant API calls and improve usability",
     ]),
     ("Career Break", "Personal / Family Responsibilities", "Oct 2024 - Jan 2025", [
         "Took a planned career break to manage family responsibilities before returning to software engineering",
     ]),
     ("Software Engineer", "Kfaqs Infotech Pvt Ltd", "Feb 2022 - Sep 2024", [
-        "Built and maintained production web applications using React, Redux, and reusable frontend patterns",
-        "Improved application performance through frontend optimization and reliable user workflows",
-        "Integrated REST and GraphQL APIs across multiple application workflows",
+        "Led frontend delivery for 5+ production web applications using React, Redux, and reusable frontend patterns",
+        "Mentored a junior developer and coordinated implementation across interconnected application workflows",
+        "Improved application performance through lazy loading, code splitting, and frontend optimization techniques",
+        "Integrated REST and GraphQL APIs across multiple production applications",
         "Implemented backend features for selected CRUD workflows, request handling, validation, and issue resolution",
     ]),
     ("Associate Software Engineer", "TCS", "Jan 2021 - Feb 2022", [
@@ -217,29 +218,30 @@ projects = [
             "Led frontend development for chat, report generation, tables, charts, SQL results, and newsletter outputs",
             "Designed response-driven React components that render different result types from backend responses",
             "Implemented session interfaces for creating, renaming, deleting, and switching between chat and report sessions",
-            "Developed supporting APIs and implemented JWT authentication, authorization, and session workflows",
+            "Built authentication, authorization, and session management with frontend token handling for secure user workflows",
+            "Developed supporting APIs for user queries and report-generation workflows",
         ],
     ),
     (
         "Topia Web App",
-        "Enterprise application  |  React, TypeScript, Node.js, Express, REST APIs",
+        "Frontend Lead (team of 3)  |  React, TypeScript, Node.js, Express, REST APIs",
         "Incremental migration of a complex enterprise application from .NET to React while backend services moved to Java.",
         [
-            "Led the frontend migration of interconnected enterprise workflows from .NET to React",
-            "Decomposed legacy screens into reusable components and implemented CRUD-style user workflows",
-            "Integrated REST APIs and coordinated request/response behavior with backend developers",
-            "Implemented frontend authentication and authorization flows during the backend service migration",
+            "Led a frontend team of three developers, including two junior developers, across interconnected application modules",
+            "Decomposed the legacy application into independently deliverable React components and defined an incremental migration architecture",
+            "Recreated existing workflows using Redux, Tailwind CSS, and TanStack Query for API data fetching",
+            "Integrated REST APIs and coordinated authentication and authorization changes during the backend service migration",
         ],
     ),
     (
         "Nuvama Web App",
-        "Enterprise application  |  React, TypeScript, Material-UI, Redux, GraphQL",
+        "Frontend Lead (with 1 junior developer)  |  React, TypeScript, Material-UI, Redux, GraphQL",
         "Migration of a complex .NET web application to React with API-connected workflows and coordinated backend feature delivery.",
         [
-            "Led the frontend migration of legacy workflows using React, Redux, and Material-UI",
-            "Recreated interconnected screens and maintained consistent user experiences across the migration",
-            "Integrated GraphQL workflows and established reusable component and API-consumption patterns",
-            "Contributed to authentication and authorization changes across frontend and backend boundaries",
+            "Worked with one junior developer, providing technical guidance and training throughout the migration",
+            "Owned frontend migration planning, ticket breakdown, and sprint execution across identified component areas",
+            "Rebuilt legacy workflows with React, Material-UI, Redux, and GraphQL while maintaining consistent user experiences",
+            "Established reusable component patterns and contributed to authentication and authorization changes",
         ],
     ),
     (
@@ -250,6 +252,7 @@ projects = [
             "Built interactive dashboards with charts, data visualizations, and tables for categorized emission data",
             "Implemented data-entry, categorization, and Excel upload workflows for enterprise users",
             "Connected GraphQL queries and subscriptions to long-running report generation and real-time progress updates",
+            "Added Jest component tests and accessibility improvements as part of frontend quality standards",
         ],
     ),
 ]
