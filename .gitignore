@@ -1,0 +1,14 @@
+pdf
+*.pdf
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.DS_Store
+Thumbs.db

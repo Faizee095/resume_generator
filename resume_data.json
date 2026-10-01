@@ -150,6 +150,7 @@
           "role": "",
           "team": "",
           "technologies": ["React", "GraphQL", "TypeScript", "Charting Libraries", "Table Libraries"],
+          "context": "Enterprise emissions dashboard",
           "description": "Built a carbon accounting platform for enterprise customers to calculate emissions from vehicles, machines, factories, and other operational inputs against regulatory thresholds.",
           "bullets": [
             "Developed a dashboard with interactive charts, data visualizations, and tables for reviewing categorized emission data",
