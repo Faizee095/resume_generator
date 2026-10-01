@@ -6,15 +6,28 @@ import subprocess
 import sys
 import tempfile
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 import streamlit as st
+from dotenv import load_dotenv
+from supabase import create_client
 
 from resume_data import PROJECT_DIR
 
 
+load_dotenv(PROJECT_DIR / ".env")
+
 DATA_PATH = PROJECT_DIR / "resume_data.json"
 CUSTOM_DATA_PATH = PROJECT_DIR / "resume_custom.json"
+PERSISTENCE_MODE = os.environ.get("PERSISTENCE_MODE", "local").strip().lower()
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "").strip()
+ALLOWED_EMAILS = {
+    email.strip().lower()
+    for email in os.environ.get("ALLOWED_EMAILS", "").split(",")
+    if email.strip()
+}
 SCRIPT_BY_VARIANT = {
     "frontend": "resume_frontend.py",
     "fullstack": "resume_fullstack.py",
@@ -45,6 +58,39 @@ st.markdown(
 
 def read_default_data():
     return json.loads(DATA_PATH.read_text(encoding="utf-8"))
+
+
+def get_supabase_client():
+    if "supabase_client" not in st.session_state:
+        st.session_state["supabase_client"] = create_client(SUPABASE_URL, SUPABASE_KEY)
+    return st.session_state["supabase_client"]
+
+
+def show_login():
+    st.title("Resume Workshop")
+    st.subheader("Sign in")
+    with st.form("supabase-login"):
+        email = st.text_input("Email")
+        password = st.text_input("Password", type="password")
+        submitted = st.form_submit_button("Sign in", type="primary")
+
+    if submitted:
+        if email.strip().lower() not in ALLOWED_EMAILS:
+            st.error("This email is not authorized to use this resume workspace.")
+            return
+        try:
+            client = get_supabase_client()
+            response = client.auth.sign_in_with_password({
+                "email": email.strip(),
+                "password": password,
+            })
+            if response.user is None:
+                raise ValueError("Supabase did not return an authenticated user.")
+            st.session_state["supabase_user_id"] = response.user.id
+            st.session_state["supabase_user_email"] = response.user.email or email.strip()
+            st.rerun()
+        except Exception:
+            st.error("Sign-in failed. Check the credentials and Supabase Auth configuration.")
 
 
 def attach_editor_ids(data):
@@ -249,6 +295,25 @@ def validate_draft_structure(data, defaults):
 
 
 def load_custom_draft(defaults):
+    if PERSISTENCE_MODE == "supabase":
+        try:
+            result = (
+                get_supabase_client()
+                .table("resume_drafts")
+                .select("data")
+                .eq("user_id", st.session_state["supabase_user_id"])
+                .limit(1)
+                .execute()
+            )
+            if not result.data:
+                return attach_editor_ids(copy.deepcopy(defaults)), None, None
+            saved_data = result.data[0]["data"]
+            validate_draft_structure(saved_data, defaults)
+            return attach_editor_ids(saved_data), data_signature(saved_data), None
+        except Exception:
+            message = "Could not load the saved Supabase draft. Saving is paused to protect existing cloud data."
+            return attach_editor_ids(copy.deepcopy(defaults)), None, message
+
     if not CUSTOM_DATA_PATH.exists():
         return attach_editor_ids(copy.deepcopy(defaults)), None, None
 
@@ -261,9 +326,26 @@ def load_custom_draft(defaults):
         return attach_editor_ids(copy.deepcopy(defaults)), None, message
 
 
+def read_local_custom_draft(defaults):
+    saved_data = json.loads(CUSTOM_DATA_PATH.read_text(encoding="utf-8"))
+    validate_draft_structure(saved_data, defaults)
+    return attach_editor_ids(saved_data)
+
+
 def save_custom_draft(data, defaults):
     clean_data = clean_editor_ids(data)
     validate_draft_structure(clean_data, defaults)
+    if PERSISTENCE_MODE == "supabase":
+        get_supabase_client().table("resume_drafts").upsert(
+            {
+                "user_id": st.session_state["supabase_user_id"],
+                "data": clean_data,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            },
+            on_conflict="user_id",
+        ).execute()
+        return
+
     temporary_file = None
     try:
         with tempfile.NamedTemporaryFile(
@@ -361,6 +443,26 @@ def new_record(**fields):
     return fields
 
 
+if PERSISTENCE_MODE not in {"local", "supabase"}:
+    st.error("PERSISTENCE_MODE must be either 'local' or 'supabase'.")
+    st.stop()
+
+if PERSISTENCE_MODE == "supabase":
+    missing_settings = [
+        name for name, value in (
+            ("SUPABASE_URL", SUPABASE_URL),
+            ("SUPABASE_KEY", SUPABASE_KEY),
+            ("ALLOWED_EMAILS", ALLOWED_EMAILS),
+        ) if not value
+    ]
+    if missing_settings:
+        st.error(f"Missing required Supabase settings: {', '.join(missing_settings)}")
+        st.stop()
+    if "supabase_user_id" not in st.session_state or "supabase_client" not in st.session_state:
+        show_login()
+        st.stop()
+
+
 if "default_data" not in st.session_state:
     st.session_state["default_data"] = read_default_data()
 if "draft_data" not in st.session_state:
@@ -371,9 +473,32 @@ if "draft_data" not in st.session_state:
     st.session_state["draft_revision"] = 0
 
 st.title("Resume Workshop")
-st.markdown("Generate a resume from defaults or customize a session-only draft.")
+st.markdown("Generate from defaults or edit a protected custom draft.")
 
 with st.sidebar:
+    if PERSISTENCE_MODE == "supabase":
+        st.caption(st.session_state.get("supabase_user_email", ""))
+        if st.button("Sign out", icon=":material/logout:", key="supabase-sign-out"):
+            try:
+                get_supabase_client().auth.sign_out()
+            except Exception:
+                pass
+            for key in list(st.session_state):
+                if key.startswith("draft-") or key in {
+                    "supabase_client",
+                    "supabase_user_id",
+                    "supabase_user_email",
+                    "draft_data",
+                    "saved_draft_signature",
+                    "draft_load_error",
+                    "draft_revision",
+                    "generated_artifact",
+                    "generation_issues",
+                }:
+                    st.session_state.pop(key, None)
+            st.rerun()
+        st.divider()
+
     variants_by_label = {
         variant["label"]: variant_id
         for variant_id, variant in st.session_state["default_data"]["variants"].items()
@@ -497,15 +622,50 @@ else:
     else:
         st.warning("You have unsaved changes.")
 
+    if (
+        PERSISTENCE_MODE == "supabase"
+        and saved_signature is None
+        and CUSTOM_DATA_PATH.exists()
+    ):
+        st.info("A local custom draft is available to import. Importing keeps the local copy.")
+        import_confirmed = st.checkbox(
+            "Confirm import of the local draft to Supabase",
+            key=editor_key("confirm-local-import"),
+        )
+        if st.button(
+            "Import local draft",
+            icon=":material/cloud_upload:",
+            key="import-local-draft",
+            disabled=not import_confirmed or bool(st.session_state.get("draft_load_error")),
+        ):
+            try:
+                local_draft = read_local_custom_draft(st.session_state["default_data"])
+                save_custom_draft(local_draft, st.session_state["default_data"])
+                st.session_state["draft_data"] = local_draft
+                st.session_state["saved_draft_signature"] = data_signature(local_draft)
+                st.session_state["draft_load_error"] = None
+                st.session_state["draft_revision"] += 1
+                st.session_state.pop("generated_artifact", None)
+                st.session_state.pop("generation_issues", None)
+                st.rerun()
+            except Exception as error:
+                st.error(f"Could not import the local draft: {error}")
+
     save_column, reset_column = st.columns([1, 2])
     with save_column:
-        if st.button("Save draft", icon=":material/save:", key="save-custom-draft"):
+        if st.button(
+            "Save draft",
+            icon=":material/save:",
+            key="save-custom-draft",
+            disabled=bool(st.session_state.get("draft_load_error")),
+        ):
             try:
                 save_custom_draft(draft, st.session_state["default_data"])
                 st.session_state["saved_draft_signature"] = signature
                 st.session_state["draft_load_error"] = None
-                st.success("Draft saved on this computer.")
-            except (OSError, TypeError, ValueError) as error:
+                location = "Supabase" if PERSISTENCE_MODE == "supabase" else "this computer"
+                st.success(f"Draft saved to {location}.")
+            except Exception as error:
                 st.error(f"Could not save the draft: {error}")
     with reset_column:
         reset_confirmed = st.checkbox(
@@ -517,7 +677,16 @@ else:
                 st.error("Confirm the reset before continuing.")
             else:
                 try:
-                    CUSTOM_DATA_PATH.unlink(missing_ok=True)
+                    if PERSISTENCE_MODE == "supabase":
+                        (
+                            get_supabase_client()
+                            .table("resume_drafts")
+                            .delete()
+                            .eq("user_id", st.session_state["supabase_user_id"])
+                            .execute()
+                        )
+                    else:
+                        CUSTOM_DATA_PATH.unlink(missing_ok=True)
                     defaults = st.session_state["default_data"]
                     st.session_state["draft_data"] = attach_editor_ids(copy.deepcopy(defaults))
                     st.session_state["saved_draft_signature"] = None
@@ -526,7 +695,7 @@ else:
                     st.session_state.pop("generated_artifact", None)
                     st.session_state.pop("generation_issues", None)
                     st.rerun()
-                except OSError as error:
+                except Exception as error:
                     st.error(f"Could not reset the draft: {error}")
 
     validation_issues = validate_resume(draft, variant_id)

@@ -24,11 +24,25 @@ Start the local web app:
 streamlit run app.py
 ```
 
-The editor opens at `http://localhost:8501` by default.
+The editor opens at `http://localhost:8501` by default. Local mode needs no Supabase account and stores its single custom draft in the ignored `resume_custom.json` file.
 
 Choose a resume version, then select **Default data** to generate its default PDF or **Customize** to edit a custom draft and generate a customized PDF. Use **Save draft** to keep edits in the local, Git-ignored `resume_custom.json` across app restarts. The editor never changes `resume_data.json`; **Reset custom draft** removes the saved custom copy and reloads the defaults after confirmation.
 
-The custom draft is stored as a local JSON file without encryption. Keep the editor on your own computer until authentication and deployment protections are added.
+Local custom drafts are stored as JSON without encryption. Keep local mode on your own computer.
+
+## Supabase and Render
+
+Hosted mode uses Supabase Auth and a private Postgres JSONB row for each user's custom draft. Generated PDFs are returned as downloads and are not stored remotely. If a local custom draft exists and the account has no cloud draft yet, the editor offers a confirmed import; it keeps the local file as a backup.
+
+1. Create a Supabase project and run `supabase/schema.sql` in its SQL Editor.
+2. In Supabase Auth, disable public sign-ups and create/invite the account you will use. The app also checks the account against `ALLOWED_EMAILS`.
+3. Create a Render web service from this repository using `render.yaml`.
+4. In the Render service environment, set `SUPABASE_URL`, `SUPABASE_KEY`, and `ALLOWED_EMAILS`. Use the Supabase publishable key or legacy anon key for `SUPABASE_KEY`; never use the `service_role` key.
+5. Deploy the service and open its Render URL. Only allowlisted accounts can sign in; row-level security restricts draft access to the authenticated user's own row.
+
+Render's blueprint marks these values as secrets and prompts for them during setup. Do not put real credentials in `.env.example`, source code, or Git. The app defaults to local mode unless `PERSISTENCE_MODE=supabase` is set.
+
+Keep the Git repository private because `resume_data.json` contains personal resume details. Render's URL is internet-reachable, but the app requires an allowlisted Supabase login before showing resume data.
 
 ## Generate PDFs
 

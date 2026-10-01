@@ -13,5 +13,8 @@ htmlcov/
 .DS_Store
 Thumbs.db
 .streamlit/secrets.toml
+.env
+.env.*
+!.env.example
 resume_custom.json
 .resume_custom_*.tmp
