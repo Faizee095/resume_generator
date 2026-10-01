@@ -32,9 +32,11 @@ Local custom drafts are stored as JSON without encryption. Keep local mode on yo
 
 ## Supabase and Render
 
-Hosted mode uses Supabase Auth and a private Postgres JSONB row for each user's custom draft. Generated PDFs are returned as downloads and are not stored remotely. If a local custom draft exists and the account has no cloud draft yet, the editor offers a confirmed import; it keeps the local file as a backup.
+Hosted mode uses Supabase Auth and private Postgres JSONB records for named saved resumes. The **Saved drafts** workspace lets the user open, update, save as a new copy, generate a PDF, or delete a draft. Legacy single-draft data is imported by the migration. If a local draft file exists and the account has no cloud draft yet, the editor offers a confirmed import and keeps the local file as a backup.
 
-1. Create a Supabase project and run `supabase/schema.sql` in its SQL Editor.
+PDFs are uploaded to the private `resume-pdfs` Storage bucket when the user clicks a PDF download button. The **PDF downloads** workspace lists those requests and lets the user retrieve the archived PDF again. The app can record the download request, but cannot confirm that the browser completed saving the file. Deleting a saved resume does not delete its PDF history.
+
+1. For the existing Supabase project, run `supabase/migrations/20261001000000_saved_resumes_and_pdf_history.sql` in its SQL Editor. For a new Supabase project, run `supabase/schema.sql` instead.
 2. In Supabase Auth, disable public sign-ups and create/invite the account you will use. The app also checks the account against `ALLOWED_EMAILS`.
 3. Create a Render web service from this repository using `render.yaml`.
 4. In the Render service environment, set `SUPABASE_URL`, `SUPABASE_KEY`, and `ALLOWED_EMAILS`. Use the Supabase publishable key or legacy anon key for `SUPABASE_KEY`; never use the `service_role` key.

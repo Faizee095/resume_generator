@@ -14,6 +14,15 @@ from dotenv import load_dotenv
 from supabase import create_client
 
 from resume_data import PROJECT_DIR
+from resume_library import (
+    delete_resume,
+    get_pdf_download,
+    get_saved_resume,
+    list_pdf_history,
+    list_saved_resumes,
+    record_pdf_download as store_pdf_download,
+    save_resume,
+)
 
 
 load_dotenv(PROJECT_DIR / ".env")
@@ -61,6 +70,14 @@ st.markdown(
 
 def read_default_data():
     return json.loads(DATA_PATH.read_text(encoding="utf-8"))
+
+
+def saved_resume_signature(data, name, variant_id):
+    return json.dumps({
+        "data": json.loads(data_signature(data)),
+        "name": name,
+        "variant_id": variant_id,
+    }, ensure_ascii=False, sort_keys=True)
 
 
 def get_supabase_client():
@@ -299,23 +316,7 @@ def validate_draft_structure(data, defaults):
 
 def load_custom_draft(defaults):
     if PERSISTENCE_MODE == "supabase":
-        try:
-            result = (
-                get_supabase_client()
-                .table("resume_drafts")
-                .select("data")
-                .eq("user_id", st.session_state["supabase_user_id"])
-                .limit(1)
-                .execute()
-            )
-            if not result.data:
-                return attach_editor_ids(copy.deepcopy(defaults)), None, None
-            saved_data = result.data[0]["data"]
-            validate_draft_structure(saved_data, defaults)
-            return attach_editor_ids(saved_data), data_signature(saved_data), None
-        except Exception:
-            message = "Could not load the saved Supabase draft. Saving is paused to protect existing cloud data."
-            return attach_editor_ids(copy.deepcopy(defaults)), None, message
+        return attach_editor_ids(copy.deepcopy(defaults)), None, None
 
     if not CUSTOM_DATA_PATH.exists():
         return attach_editor_ids(copy.deepcopy(defaults)), None, None
@@ -399,6 +400,25 @@ def generate_pdf(variant_id, resume_data):
         return pdf_path.name, pdf_path.read_bytes()
 
 
+def record_download_request(user_id, artifact):
+    if PERSISTENCE_MODE != "supabase":
+        return
+    try:
+        store_pdf_download(
+            get_supabase_client(),
+            user_id,
+            artifact["content"],
+            artifact["filename"],
+            artifact["resume_name"],
+            artifact["variant_id"],
+            artifact.get("saved_resume_id"),
+        )
+        st.session_state["pdf_history_notice"] = f"{artifact['filename']} added to PDF downloads."
+        st.session_state.pop("pdf_history_error", None)
+    except Exception:
+        st.session_state["pdf_history_error"] = "The PDF downloaded, but it could not be added to history."
+
+
 def render_download(variant_id, signature):
     artifact = st.session_state.get("generated_artifact")
     if not artifact:
@@ -412,10 +432,18 @@ def render_download(variant_id, signature):
         mime="application/pdf",
         icon=":material/download:",
         key="download-current-resume",
+        on_click=record_download_request if PERSISTENCE_MODE == "supabase" else None,
+        args=(st.session_state["supabase_user_id"], artifact) if PERSISTENCE_MODE == "supabase" else None,
     )
+    history_notice = st.session_state.pop("pdf_history_notice", None)
+    history_error = st.session_state.pop("pdf_history_error", None)
+    if history_notice:
+        st.success(history_notice)
+    if history_error:
+        st.warning(history_error)
 
 
-def render_generate_button(variant_id, payload, signature, label):
+def render_generate_button(variant_id, payload, signature, label, resume_name=None, saved_resume_id=None):
     if st.button(label, type="primary", icon=":material/picture_as_pdf:", key=f"generate-{label}"):
         issues = validate_resume(payload, variant_id)
         if issues:
@@ -431,6 +459,8 @@ def render_generate_button(variant_id, payload, signature, label):
                     "signature": signature,
                     "filename": filename,
                     "content": content,
+                    "resume_name": resume_name or payload["variants"][variant_id]["label"],
+                    "saved_resume_id": saved_resume_id,
                 }
             except (OSError, RuntimeError, subprocess.TimeoutExpired) as error:
                 st.session_state.pop("generated_artifact", None)
@@ -444,6 +474,52 @@ def render_generate_button(variant_id, payload, signature, label):
 def new_record(**fields):
     fields["_editor_id"] = uuid.uuid4().hex
     return fields
+
+
+def open_saved_resume(resume_id):
+    try:
+        record = get_saved_resume(
+            get_supabase_client(),
+            st.session_state["supabase_user_id"],
+            resume_id,
+        )
+        validate_draft_structure(record["data"], st.session_state["default_data"])
+        st.session_state["draft_data"] = attach_editor_ids(record["data"])
+        st.session_state["active_saved_resume_id"] = record["id"]
+        st.session_state["active_saved_resume_name"] = record["name"]
+        st.session_state["saved_draft_signature"] = saved_resume_signature(
+            record["data"], record["name"], record["variant_id"]
+        )
+        st.session_state["draft_load_error"] = None
+        st.session_state["resume-variant"] = st.session_state["default_data"]["variants"][record["variant_id"]]["label"]
+        st.session_state["workspace-mode"] = "Customize"
+        st.session_state["draft_revision"] += 1
+        st.session_state.pop("generated_artifact", None)
+        st.session_state.pop("generation_issues", None)
+        st.session_state.pop("library_error", None)
+    except Exception as error:
+        st.session_state["library_error"] = f"Could not open saved resume: {error}"
+
+
+def prepare_saved_resume_pdf(record):
+    issues = validate_resume(record["data"], record["variant_id"])
+    if issues:
+        st.error("This saved resume needs attention before generating a PDF: " + " ".join(issues))
+        return
+    try:
+        with st.spinner("Building PDF..."):
+            filename, content = generate_pdf(record["variant_id"], record["data"])
+        st.session_state["generated_artifact"] = {
+            "variant_id": record["variant_id"],
+            "signature": data_signature(record["data"]),
+            "filename": filename,
+            "content": content,
+            "resume_name": record["name"],
+            "saved_resume_id": record["id"],
+        }
+        st.session_state.pop("generation_issues", None)
+    except Exception as error:
+        st.error(f"Could not generate the PDF: {error}")
 
 
 if PERSISTENCE_MODE not in {"local", "supabase"}:
@@ -474,9 +550,13 @@ if "draft_data" not in st.session_state:
     st.session_state["saved_draft_signature"] = saved_signature
     st.session_state["draft_load_error"] = load_error
     st.session_state["draft_revision"] = 0
+    st.session_state["active_saved_resume_id"] = None
+    st.session_state["active_saved_resume_name"] = ""
+st.session_state.setdefault("active_saved_resume_id", None)
+st.session_state.setdefault("active_saved_resume_name", "")
 
 st.title("Resume Workshop")
-st.markdown("Generate from defaults or edit a protected custom draft.")
+st.markdown("Generate, customize, and manage your resume files.")
 
 with st.sidebar:
     if PERSISTENCE_MODE == "supabase":
@@ -506,13 +586,17 @@ with st.sidebar:
         variant["label"]: variant_id
         for variant_id, variant in st.session_state["default_data"]["variants"].items()
     }
-    selected_label = st.selectbox("Resume version", options=list(variants_by_label))
+    selected_label = st.selectbox("Resume version", options=list(variants_by_label), key="resume-variant")
     variant_id = variants_by_label[selected_label]
-    mode = st.radio("Content", ["Default data", "Customize"], horizontal=False)
+    workspace = st.radio(
+        "Workspace",
+        ["Generate", "Customize", "Saved drafts", "PDF downloads"],
+        key="workspace-mode",
+    )
 
 variant = st.session_state["draft_data"]["variants"][variant_id]
 
-if mode == "Default data":
+if workspace == "Generate":
     default_variant = st.session_state["default_data"]["variants"][variant_id]
     st.subheader(default_variant["label"])
     st.markdown(f"**{default_variant['headline']}**")
@@ -524,8 +608,17 @@ if mode == "Default data":
 
     payload = st.session_state["default_data"]
     render_generate_button(variant_id, payload, data_signature(payload), "Generate default PDF")
-else:
+elif workspace == "Customize":
     draft = st.session_state["draft_data"]
+    draft_name = st.session_state.get("active_saved_resume_name", "")
+    if PERSISTENCE_MODE == "supabase":
+        if not draft_name:
+            draft_name = f"Untitled {variant['label']} resume"
+        draft_name = st.text_input(
+            "Draft name",
+            value=draft_name,
+            key=editor_key("draft-name"),
+        )
     tabs = st.tabs(["Profile", "Skills", "Experience", "Projects", "Preview"])
 
     with tabs[0]:
@@ -614,12 +707,16 @@ else:
         st.markdown("**Projects**")
         st.write(" · ".join(project["title"] for project in variant["projects"] if project.get("title")))
 
-    signature = data_signature(draft)
+    signature = (
+        saved_resume_signature(draft, draft_name, variant_id)
+        if PERSISTENCE_MODE == "supabase"
+        else data_signature(draft)
+    )
     saved_signature = st.session_state.get("saved_draft_signature")
     if st.session_state.get("draft_load_error"):
         st.error(st.session_state["draft_load_error"])
     if saved_signature is None:
-        st.info("No saved custom draft yet.")
+        st.info("This is an unsaved draft. Save it to the library when ready.")
     elif signature == saved_signature:
         st.success("Draft saved. No unsaved changes.")
     else:
@@ -643,9 +740,21 @@ else:
         ):
             try:
                 local_draft = read_local_custom_draft(st.session_state["default_data"])
-                save_custom_draft(local_draft, st.session_state["default_data"])
+                imported_record = save_resume(
+                    get_supabase_client(),
+                    st.session_state["supabase_user_id"],
+                    "Imported local draft",
+                    variant_id,
+                    clean_editor_ids(local_draft),
+                )
                 st.session_state["draft_data"] = local_draft
-                st.session_state["saved_draft_signature"] = data_signature(local_draft)
+                st.session_state["active_saved_resume_id"] = imported_record["id"]
+                st.session_state["active_saved_resume_name"] = imported_record["name"]
+                st.session_state["saved_draft_signature"] = saved_resume_signature(
+                    local_draft,
+                    imported_record["name"],
+                    variant_id,
+                )
                 st.session_state["draft_load_error"] = None
                 st.session_state["draft_revision"] += 1
                 st.session_state.pop("generated_artifact", None)
@@ -654,51 +763,116 @@ else:
             except Exception as error:
                 st.error(f"Could not import the local draft: {error}")
 
-    save_column, reset_column = st.columns([1, 2])
-    with save_column:
-        if st.button(
-            "Save draft",
-            icon=":material/save:",
-            key="save-custom-draft",
-            disabled=bool(st.session_state.get("draft_load_error")),
-        ):
-            try:
-                save_custom_draft(draft, st.session_state["default_data"])
-                st.session_state["saved_draft_signature"] = signature
-                st.session_state["draft_load_error"] = None
-                location = "Supabase" if PERSISTENCE_MODE == "supabase" else "this computer"
-                st.success(f"Draft saved to {location}.")
-            except Exception as error:
-                st.error(f"Could not save the draft: {error}")
-    with reset_column:
-        reset_confirmed = st.checkbox(
-            "Confirm reset to the default data",
-            key=editor_key("confirm-reset"),
-        )
-        if st.button("Reset custom draft", icon=":material/restore:", key="reset-custom-draft"):
-            if not reset_confirmed:
-                st.error("Confirm the reset before continuing.")
-            else:
+    if PERSISTENCE_MODE == "supabase":
+        update_column, new_column, reset_column = st.columns(3)
+        with update_column:
+            if st.button(
+                "Update saved draft",
+                icon=":material/save:",
+                key="update-saved-resume",
+                disabled=(
+                    not st.session_state.get("active_saved_resume_id")
+                    or not draft_name.strip()
+                    or bool(st.session_state.get("draft_load_error"))
+                ),
+            ):
                 try:
-                    if PERSISTENCE_MODE == "supabase":
-                        (
-                            get_supabase_client()
-                            .table("resume_drafts")
-                            .delete()
-                            .eq("user_id", st.session_state["supabase_user_id"])
-                            .execute()
-                        )
-                    else:
-                        CUSTOM_DATA_PATH.unlink(missing_ok=True)
-                    defaults = st.session_state["default_data"]
-                    st.session_state["draft_data"] = attach_editor_ids(copy.deepcopy(defaults))
+                    record = save_resume(
+                        get_supabase_client(),
+                        st.session_state["supabase_user_id"],
+                        draft_name,
+                        variant_id,
+                        clean_editor_ids(draft),
+                        resume_id=st.session_state["active_saved_resume_id"],
+                    )
+                    st.session_state["active_saved_resume_name"] = record["name"]
+                    st.session_state["saved_draft_signature"] = saved_resume_signature(
+                        draft, record["name"], variant_id
+                    )
+                    st.session_state.pop("draft_load_error", None)
+                    st.rerun()
+                except Exception as error:
+                    st.error(f"Could not update the saved draft: {error}")
+        with new_column:
+            if st.button(
+                "Save as new draft",
+                icon=":material/note_add:",
+                key="save-as-new-resume",
+                disabled=not draft_name.strip() or bool(st.session_state.get("draft_load_error")),
+            ):
+                try:
+                    record = save_resume(
+                        get_supabase_client(),
+                        st.session_state["supabase_user_id"],
+                        draft_name,
+                        variant_id,
+                        clean_editor_ids(draft),
+                    )
+                    st.session_state["active_saved_resume_id"] = record["id"]
+                    st.session_state["active_saved_resume_name"] = record["name"]
+                    st.session_state["saved_draft_signature"] = saved_resume_signature(
+                        draft, record["name"], variant_id
+                    )
+                    st.session_state.pop("draft_load_error", None)
+                    st.rerun()
+                except Exception as error:
+                    st.error(f"Could not save the new draft: {error}")
+        with reset_column:
+            reset_confirmed = st.checkbox(
+                "Confirm discard",
+                key=editor_key("confirm-reset"),
+            )
+            if st.button(
+                "Reset editor",
+                icon=":material/restore:",
+                key="reset-resume-editor",
+                disabled=not reset_confirmed,
+            ):
+                st.session_state["draft_data"] = attach_editor_ids(
+                    copy.deepcopy(st.session_state["default_data"])
+                )
+                st.session_state["saved_draft_signature"] = None
+                st.session_state["active_saved_resume_id"] = None
+                st.session_state["active_saved_resume_name"] = ""
+                st.session_state["draft_load_error"] = None
+                st.session_state["draft_revision"] += 1
+                st.session_state.pop("generated_artifact", None)
+                st.session_state.pop("generation_issues", None)
+                st.rerun()
+    else:
+        save_column, reset_column = st.columns([1, 2])
+        with save_column:
+            if st.button("Save draft", icon=":material/save:", key="save-custom-draft"):
+                try:
+                    save_custom_draft(draft, st.session_state["default_data"])
+                    st.session_state["saved_draft_signature"] = signature
+                    st.session_state["draft_load_error"] = None
+                    st.rerun()
+                except Exception as error:
+                    st.error(f"Could not save the draft: {error}")
+        with reset_column:
+            reset_confirmed = st.checkbox(
+                "Confirm reset to default data",
+                key=editor_key("confirm-reset"),
+            )
+            if st.button(
+                "Reset custom draft",
+                icon=":material/restore:",
+                key="reset-custom-draft",
+                disabled=not reset_confirmed,
+            ):
+                try:
+                    CUSTOM_DATA_PATH.unlink(missing_ok=True)
+                    st.session_state["draft_data"] = attach_editor_ids(
+                        copy.deepcopy(st.session_state["default_data"])
+                    )
                     st.session_state["saved_draft_signature"] = None
                     st.session_state["draft_load_error"] = None
                     st.session_state["draft_revision"] += 1
                     st.session_state.pop("generated_artifact", None)
                     st.session_state.pop("generation_issues", None)
                     st.rerun()
-                except Exception as error:
+                except OSError as error:
                     st.error(f"Could not reset the draft: {error}")
 
     validation_issues = validate_resume(draft, variant_id)
@@ -707,4 +881,144 @@ else:
         with st.expander("Review validation details"):
             for issue in validation_issues:
                 st.write(f"- {issue}")
-    render_generate_button(variant_id, draft, signature, "Generate customized PDF")
+    render_generate_button(
+        variant_id,
+        draft,
+        signature,
+        "Generate customized PDF",
+        resume_name=draft_name if PERSISTENCE_MODE == "supabase" else None,
+        saved_resume_id=st.session_state.get("active_saved_resume_id"),
+    )
+elif workspace == "Saved drafts":
+    st.subheader("Saved drafts")
+    if PERSISTENCE_MODE != "supabase":
+        st.info("Saved draft library is available when signed in to Supabase.")
+    else:
+        if st.session_state.get("library_error"):
+            st.error(st.session_state.pop("library_error"))
+        try:
+            saved_resumes = list_saved_resumes(
+                get_supabase_client(),
+                st.session_state["supabase_user_id"],
+            )
+        except Exception as error:
+            saved_resumes = []
+            st.error(f"Could not load saved drafts: {error}")
+
+        if not saved_resumes:
+            st.info("No saved drafts yet. Customize a resume and save it to see it here.")
+
+        for saved_resume in saved_resumes:
+            variant_label = st.session_state["default_data"]["variants"].get(
+                saved_resume["variant_id"], {}
+            ).get("label", saved_resume["variant_id"])
+            with st.expander(f"{saved_resume['name']}  ·  {variant_label}"):
+                st.caption(f"Updated {saved_resume['updated_at']}")
+                open_column, pdf_column, delete_column = st.columns(3)
+                open_column.button(
+                    "Open in editor",
+                    icon=":material/edit:",
+                    key=f"open-saved-{saved_resume['id']}",
+                    on_click=open_saved_resume,
+                    args=(saved_resume["id"],),
+                )
+                if pdf_column.button(
+                    "Generate PDF",
+                    icon=":material/picture_as_pdf:",
+                    key=f"prepare-saved-pdf-{saved_resume['id']}",
+                ):
+                    try:
+                        full_record = get_saved_resume(
+                            get_supabase_client(),
+                            st.session_state["supabase_user_id"],
+                            saved_resume["id"],
+                        )
+                        prepare_saved_resume_pdf(full_record)
+                    except Exception as error:
+                        st.error(f"Could not prepare this resume: {error}")
+
+                confirm_delete = delete_column.checkbox(
+                    "Confirm delete",
+                    key=f"confirm-delete-saved-{saved_resume['id']}",
+                )
+                if delete_column.button(
+                    "Delete draft",
+                    icon=":material/delete:",
+                    key=f"delete-saved-{saved_resume['id']}",
+                    disabled=not confirm_delete,
+                ):
+                    try:
+                        delete_resume(
+                            get_supabase_client(),
+                            st.session_state["supabase_user_id"],
+                            saved_resume["id"],
+                        )
+                        if st.session_state.get("active_saved_resume_id") == saved_resume["id"]:
+                            st.session_state["active_saved_resume_id"] = None
+                            st.session_state["active_saved_resume_name"] = ""
+                            st.session_state["saved_draft_signature"] = None
+                        st.session_state.pop("generated_artifact", None)
+                        st.rerun()
+                    except Exception as error:
+                        st.error(f"Could not delete this draft: {error}")
+
+                artifact = st.session_state.get("generated_artifact")
+                if artifact and artifact.get("saved_resume_id") == saved_resume["id"]:
+                    render_download(artifact["variant_id"], artifact["signature"])
+elif workspace == "PDF downloads":
+    st.subheader("PDF downloads")
+    if PERSISTENCE_MODE != "supabase":
+        st.info("PDF history is available when signed in to Supabase.")
+    else:
+        try:
+            pdf_history = list_pdf_history(
+                get_supabase_client(),
+                st.session_state["supabase_user_id"],
+            )
+        except Exception as error:
+            pdf_history = []
+            st.error(f"Could not load PDF history: {error}")
+
+        if not pdf_history:
+            st.info("No PDF downloads yet. Download a generated resume to add it here.")
+
+        for pdf_record in pdf_history:
+            variant_label = st.session_state["default_data"]["variants"].get(
+                pdf_record["variant_id"], {}
+            ).get("label", pdf_record["variant_id"])
+            with st.container(border=True):
+                details, action = st.columns([4, 1])
+                details.markdown(f"**{pdf_record['filename']}**")
+                details.caption(
+                    f"{pdf_record['resume_name']}  ·  {variant_label}  ·  "
+                    f"Download requested {pdf_record['download_requested_at']}"
+                )
+                if action.button(
+                    "Retrieve",
+                    icon=":material/download:",
+                    key=f"retrieve-pdf-{pdf_record['id']}",
+                ):
+                    try:
+                        filename, content = get_pdf_download(
+                            get_supabase_client(),
+                            st.session_state["supabase_user_id"],
+                            pdf_record["id"],
+                        )
+                        st.session_state["history_pdf_artifact"] = {
+                            "id": pdf_record["id"],
+                            "filename": filename,
+                            "content": content,
+                        }
+                    except Exception as error:
+                        st.error(f"Could not retrieve this PDF: {error}")
+
+                artifact = st.session_state.get("history_pdf_artifact")
+                if artifact and artifact["id"] == pdf_record["id"]:
+                    st.download_button(
+                        "Download PDF",
+                        data=artifact["content"],
+                        file_name=artifact["filename"],
+                        mime="application/pdf",
+                        icon=":material/download:",
+                        key=f"download-history-pdf-{pdf_record['id']}",
+                    )
