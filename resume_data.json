@@ -1,0 +1,442 @@
+{
+  "schema_version": 1,
+  "profile": {
+    "name": "Md Faiyazuddin Siddique",
+    "location": "Muzaffarpur, India",
+    "email": "faiyazsiddique9@gmail.com",
+    "phone": "+91-8709442967",
+    "links": [
+      {
+        "label": "Portfolio",
+        "url": "https://faiyazuddin.netlify.app/"
+      },
+      {
+        "label": "LinkedIn",
+        "url": "https://www.linkedin.com/in/md-faiyazuddin-siddique-244a73192/"
+      },
+      {
+        "label": "GitHub",
+        "url": "https://github.com/Faizee095"
+      }
+    ]
+  },
+  "education": [
+    {
+      "degree": "B.Tech in Computer Science",
+      "year": "2020"
+    }
+  ],
+  "variants": {
+    "frontend": {
+      "label": "Frontend Developer",
+      "output_name": "Faiyazuddin_FrontEnd Developer",
+      "headline": "Frontend Engineer | React | TypeScript | Next.js | Frontend Architecture",
+      "summary": "Frontend Engineer with 5+ years of experience building and leading production React and TypeScript applications. Strong in frontend architecture, reusable component systems, performance optimization, and large-scale migrations from legacy platforms. Experienced in mentoring junior developers and collaborating with design and backend teams to deliver scalable, maintainable user experiences.",
+      "skills": [
+        {
+          "label": "Core",
+          "items": ["React.js", "TypeScript", "Next.js", "Redux", "TanStack Query", "Frontend Architecture"]
+        },
+        {
+          "label": "UI",
+          "items": ["Tailwind CSS", "Material-UI (MUI)", "HTML", "CSS", "Responsive Design", "Accessibility (a11y)"]
+        },
+        {
+          "label": "Engineering",
+          "items": ["Reusable Component Systems", "Performance Optimization", "Code Splitting", "Testing (Jest)"]
+        },
+        {
+          "label": "Data & APIs",
+          "items": ["REST", "GraphQL", "Charting Libraries", "Table Libraries"]
+        },
+        {
+          "label": "Auth & Tools",
+          "items": ["Authentication", "Authorization", "Session Management", "Git", "Jira", "Figma", "Auth0"]
+        },
+        {
+          "label": "Additional",
+          "items": ["JavaScript", "Firebase", "Supabase", "MongoDB", "MySQL", "ElasticSearch"]
+        }
+      ],
+      "experience": [
+        {
+          "title": "Software Engineer",
+          "company": "SourceFuse",
+          "dates": "Feb 2025 – Jun 2026",
+          "bullets": [
+            "Led frontend architecture for AI-driven applications using React + TypeScript, enabling scalable production systems",
+            "Designed and implemented reusable component systems that improved consistency and speed of feature development",
+            "Led frontend modernization from legacy systems to React-based architecture across multiple projects",
+            "Optimized authentication and session management to reduce redundant API calls and improve user experience",
+            "Established frontend best practices, architectural guidelines, and collaboration patterns for production-scale delivery"
+          ]
+        },
+        {
+          "title": "Career Break",
+          "company": "Personal / Family Responsibilities",
+          "dates": "Oct 2024 – Jan 2025",
+          "bullets": [
+            "Took a planned career break to manage family responsibilities before returning to software engineering"
+          ]
+        },
+        {
+          "title": "Software Engineer",
+          "company": "Kfaqs Infotech Pvt Ltd",
+          "dates": "Feb 2022 – Sep 2024",
+          "bullets": [
+            "Built and maintained 5+ production web applications using React and Redux",
+            "Integrated REST and GraphQL APIs across multiple production applications",
+            "Improved application performance through lazy loading, code splitting, and frontend optimization techniques",
+            "Strengthened application stability through proactive debugging and issue resolution"
+          ]
+        },
+        {
+          "title": "Associate Software Engineer",
+          "company": "TCS",
+          "dates": "Jan 2021 – Feb 2022",
+          "bullets": [
+            "Built XML/XSL-based validation systems for banking workflows handling high-volume transactions",
+            "Automated scripts and APIs to simplify recurring banking workflow tasks",
+            "Contributed to frontend modules using React, improving UI responsiveness"
+          ]
+        }
+      ],
+      "projects": [
+        {
+          "title": "AI Chat Platform",
+          "organization": "Rakuten",
+          "role": "Frontend Lead",
+          "team": "1 junior developer",
+          "technologies": ["React.js", "TypeScript", "Tailwind CSS", "TanStack Query", "Charting Libraries", "Table Libraries", "Python"],
+          "description": "Led frontend development with one junior developer for an AI-powered reporting platform that helps users generate insights faster than manually reviewing large sets of reports.",
+          "bullets": [
+            "Designed a response-driven React component architecture that renders tables, charts, SQL results, and PDF newsletters based on backend responses",
+            "Built authentication, authorization, and session management with frontend token handling for secure user workflows",
+            "Implemented a real-time session sidebar supporting session creation, renaming, deletion, and switching across concurrent users",
+            "Developed the interface using React, TypeScript, Tailwind CSS, TanStack Query for API data fetching, and charting and table libraries"
+          ]
+        },
+        {
+          "title": "Topia Web App",
+          "organization": "",
+          "role": "Frontend Lead",
+          "team": "3 developers, including 2 junior developers",
+          "technologies": ["React.js", "TypeScript", "Redux", "Tailwind CSS", "TanStack Query"],
+          "description": "Led the frontend migration of a complex enterprise application from .NET to React while preserving the existing user experience and coordinating with full-stack developers migrating backend services to Java.",
+          "bullets": [
+            "Led a frontend team of three developers, including two junior developers, and coordinated implementation across interconnected application modules",
+            "Decomposed the legacy application into independently deliverable React components and defined an incremental migration architecture",
+            "Recreated existing workflows and designs in React using Redux, Tailwind CSS, and TanStack Query for API data fetching",
+            "Integrated third-party authentication and authorization while coordinating frontend changes with backend API migration"
+          ]
+        },
+        {
+          "title": "Nuvama Web App",
+          "organization": "",
+          "role": "Frontend Lead",
+          "team": "1 junior developer",
+          "technologies": ["React", "TypeScript", "Material-UI", "Redux", "GraphQL"],
+          "description": "Led the migration of a complex .NET web application to React by analyzing the legacy architecture, mapping interconnected components, and defining an incremental frontend delivery plan.",
+          "bullets": [
+            "Worked with one junior developer, providing technical guidance and training throughout the migration",
+            "Owned frontend migration planning, ticket breakdown, and sprint execution across the identified component areas",
+            "Rebuilt legacy workflows with React, Material-UI, Redux, and GraphQL while maintaining consistent user experiences",
+            "Established reusable component patterns and frontend implementation standards for the migrated application"
+          ]
+        },
+        {
+          "title": "Carbon Emission Tracker",
+          "organization": "",
+          "role": "",
+          "team": "",
+          "technologies": ["React", "GraphQL", "TypeScript", "Charting Libraries", "Table Libraries"],
+          "description": "Built a carbon accounting platform for enterprise customers to calculate emissions from vehicles, machines, factories, and other operational inputs against regulatory thresholds.",
+          "bullets": [
+            "Developed a dashboard with interactive charts, data visualizations, and tables for reviewing categorized emission data",
+            "Implemented Excel upload and categorization workflows for industry data such as food production, vehicles, and manufacturing",
+            "Supported long-running report generation for large datasets with a real-time progress timer powered by GraphQL subscriptions",
+            "Added Jest component tests and accessibility improvements as part of the frontend quality and delivery standards"
+          ]
+        }
+      ]
+    },
+    "fullstack": {
+      "label": "Full Stack Developer",
+      "output_name": "Faiyazuddin_Fullstack Developer",
+      "headline": "Full Stack Developer | Node.js | Express | React | TypeScript | REST APIs",
+      "summary": "Full Stack Developer with 5+ years of experience delivering production web applications across frontend and backend, with primary expertise in React, TypeScript, and frontend architecture. Hands-on backend experience with Node.js, Express, REST and GraphQL APIs, JWT authentication, session workflows, and AI/report-generation orchestration. Experienced in leading migrations, mentoring developers, and delivering maintainable end-to-end systems.",
+      "skills": [
+        {
+          "label": "Backend",
+          "items": ["Node.js", "Express.js", "REST API Design", "GraphQL", "API Orchestration"]
+        },
+        {
+          "label": "Auth",
+          "items": ["JWT Authentication", "Authorization", "Session Management", "Token Handling"]
+        },
+        {
+          "label": "Frontend",
+          "items": ["React.js", "TypeScript", "Next.js", "Redux", "TanStack Query"]
+        },
+        {
+          "label": "UI",
+          "items": ["Tailwind CSS", "Material-UI (MUI)", "Responsive Design", "Accessibility (a11y)"]
+        },
+        {
+          "label": "Engineering",
+          "items": ["Reusable Components", "Performance Optimization", "Testing (Jest)", "Git"]
+        },
+        {
+          "label": "Data",
+          "items": ["Charting Libraries", "Table Libraries", "Excel Data Workflows"]
+        },
+        {
+          "label": "Tools",
+          "items": ["Jira", "Figma", "Auth0", "Firebase", "Supabase"]
+        }
+      ],
+      "experience": [
+        {
+          "title": "Software Engineer | Full Stack",
+          "company": "SourceFuse",
+          "dates": "Feb 2025 – Jun 2026",
+          "bullets": [
+            "Led frontend architecture for AI-driven applications using React and TypeScript, enabling scalable production systems",
+            "Designed reusable component systems to improve consistency and speed of feature development",
+            "Led frontend modernization from legacy systems to React-based architecture across multiple projects",
+            "Established frontend best practices, architectural guidelines, and collaboration patterns for production delivery",
+            "Contributed to Node.js and Express services supporting request handling, authentication, and session workflows",
+            "Worked with backend API integrations and authentication/session flows to support secure application experiences"
+          ]
+        },
+        {
+          "title": "Career Break",
+          "company": "Personal / Family Responsibilities",
+          "dates": "Oct 2024 – Jan 2025",
+          "bullets": [
+            "Took a planned career break to manage family responsibilities before returning to software engineering"
+          ]
+        },
+        {
+          "title": "Software Engineer | Full Stack",
+          "company": "Kfaqs Infotech Pvt Ltd",
+          "dates": "Feb 2022 – Sep 2024",
+          "bullets": [
+            "Built and maintained 5+ production web applications using React and Redux",
+            "Improved application performance through lazy loading, code splitting, and frontend optimization techniques",
+            "Strengthened application stability through proactive debugging and issue resolution",
+            "Implemented and integrated REST and GraphQL APIs across multiple production applications",
+            "Contributed to backend request handling and API workflows alongside frontend feature development"
+          ]
+        },
+        {
+          "title": "Associate Software Engineer | Full Stack",
+          "company": "TCS",
+          "dates": "Jan 2021 – Feb 2022",
+          "bullets": [
+            "Contributed to React-based frontend modules and API-connected user workflows",
+            "Built XML/XSL-based validation systems supporting high-volume banking workflows",
+            "Automated recurring banking workflow tasks using scripts and APIs, contributing to end-to-end processing"
+          ]
+        }
+      ],
+      "projects": [
+        {
+          "title": "AI Chat Platform",
+          "organization": "Rakuten",
+          "role": "Full Stack Developer / Frontend Lead",
+          "team": "1 junior developer",
+          "technologies": ["Node.js", "Express", "React", "TypeScript", "Tailwind CSS", "TanStack Query", "GraphQL"],
+          "description": "Led frontend development and independently implemented backend features for an AI-powered reporting platform that converts user requests into structured reports and visual outputs.",
+          "bullets": [
+            "Designed response-driven React components that render tables, charts, SQL results, and PDF newsletters based on backend responses",
+            "Built a real-time session sidebar supporting creation, renaming, deletion, and switching between chat/report sessions",
+            "Implemented the frontend using React, TypeScript, Tailwind CSS, and TanStack Query",
+            "Built backend APIs to receive user queries and orchestrate the AI and report-generation workflow",
+            "Implemented chat/report session APIs plus JWT authentication, authorization, token handling, and session management"
+          ]
+        },
+        {
+          "title": "Topia Web App",
+          "organization": "",
+          "role": "Full Stack Developer / Frontend Lead",
+          "team": "3 developers, including 2 junior developers",
+          "technologies": ["Node.js", "Express", "React", "TypeScript", "Redux", "Tailwind CSS", "TanStack Query", "REST APIs"],
+          "description": "Led the migration of a complex enterprise application from .NET to React while coordinating with full-stack developers migrating backend services to Java.",
+          "bullets": [
+            "Managed a frontend team of three developers and coordinated implementation across interconnected application modules",
+            "Decomposed the legacy application into independently deliverable React components and defined an incremental migration architecture",
+            "Implemented and integrated API workflows for migrated modules using REST services and TanStack Query",
+            "Coordinated authentication and authorization changes across frontend and backend API migration work"
+          ]
+        },
+        {
+          "title": "Nuvama Web App",
+          "organization": "",
+          "role": "Full Stack Developer / Frontend Lead",
+          "team": "1 junior developer",
+          "technologies": ["React", "TypeScript", "Material-UI", "Redux", "GraphQL"],
+          "description": "Led the migration of a complex .NET web application to React while contributing to API-connected workflows, analyzing legacy architecture, mapping interconnected components, and defining an incremental delivery plan.",
+          "bullets": [
+            "Worked with one junior developer, providing technical guidance and training throughout the migration",
+            "Owned frontend migration planning, ticket breakdown, and sprint execution across component areas",
+            "Rebuilt legacy workflows and implemented GraphQL-connected features using React, Material-UI, and Redux while maintaining consistent user experiences",
+            "Contributed to backend API integration and request/response workflows for migrated application modules",
+            "Established reusable component patterns and frontend implementation standards for the migrated application"
+          ]
+        },
+        {
+          "title": "Carbon Emission Tracker",
+          "organization": "",
+          "role": "Full Stack Developer",
+          "team": "",
+          "technologies": ["Node.js", "Express", "React", "TypeScript", "GraphQL"],
+          "description": "Built an enterprise carbon accounting platform for calculating emissions from vehicles, machines, factories, and other operational sources against regulatory thresholds.",
+          "bullets": [
+            "Developed interactive dashboards with charts, visualizations, and tables for categorized emission data",
+            "Implemented Excel upload and categorization workflows for industry-specific data",
+            "Added Jest component tests and accessibility improvements as part of frontend delivery standards",
+            "Implemented backend APIs for emission data workflows, report requests, and long-running report-generation processes",
+            "Supported real-time report progress updates using GraphQL subscriptions"
+          ]
+        }
+      ]
+    },
+    "fullstack_frontend_lead": {
+      "label": "Full Stack Developer (Frontend Lead)",
+      "output_name": "Faiyazuddin_Fullstack Frontend Lead",
+      "headline": "Full Stack Developer | Frontend Lead | React | TypeScript | Node.js | REST APIs",
+      "summary": "Full Stack Developer with 5+ years of experience building production web applications and leading frontend delivery with React and TypeScript. Experienced in frontend architecture, reusable systems, migrations, and mentoring developers, with hands-on backend development across REST and GraphQL APIs, CRUD workflows, request handling, authentication, and session management.",
+      "skills": [
+        {
+          "label": "Core",
+          "items": ["React.js", "TypeScript", "Next.js", "Redux", "TanStack Query", "Frontend Architecture"]
+        },
+        {
+          "label": "UI",
+          "items": ["Tailwind CSS", "Material-UI (MUI)", "HTML", "CSS", "Responsive Design", "Accessibility (a11y)"]
+        },
+        {
+          "label": "Engineering",
+          "items": ["Reusable Component Systems", "Performance Optimization", "Code Splitting", "Testing (Jest)"]
+        },
+        {
+          "label": "Data and APIs",
+          "items": ["REST", "GraphQL", "Charting Libraries", "Table Libraries", "API Integration"]
+        },
+        {
+          "label": "Backend",
+          "items": ["Node.js", "Express.js", "CRUD Operations", "Request Handling", "Validation", "Report Workflows"]
+        },
+        {
+          "label": "Auth and Tools",
+          "items": ["JWT Authentication", "Authorization", "Session Management", "Git", "Jira", "Figma", "Auth0"]
+        }
+      ],
+      "experience": [
+        {
+          "title": "Software Engineer",
+          "company": "SourceFuse",
+          "dates": "Feb 2025 - Jun 2026",
+          "bullets": [
+            "Led frontend architecture for AI-driven applications using React and TypeScript, enabling scalable production systems",
+            "Designed and implemented reusable component systems that improved consistency and speed of feature development",
+            "Led frontend modernization from legacy systems to React-based architecture across multiple projects",
+            "Built API-connected workflows for data fetching, report generation, user actions, and structured AI responses",
+            "Developed selected Node.js and Express features for request handling, authentication, and session workflows",
+            "Optimized authentication and session experiences to reduce redundant API calls and improve usability"
+          ]
+        },
+        {
+          "title": "Career Break",
+          "company": "Personal / Family Responsibilities",
+          "dates": "Oct 2024 - Jan 2025",
+          "bullets": [
+            "Took a planned career break to manage family responsibilities before returning to software engineering"
+          ]
+        },
+        {
+          "title": "Software Engineer",
+          "company": "Kfaqs Infotech Pvt Ltd",
+          "dates": "Feb 2022 - Sep 2024",
+          "bullets": [
+            "Led frontend delivery for 5+ production web applications using React, Redux, and reusable frontend patterns",
+            "Mentored a junior developer and coordinated implementation across interconnected application workflows",
+            "Improved application performance through lazy loading, code splitting, and frontend optimization techniques",
+            "Integrated REST and GraphQL APIs across multiple production applications",
+            "Implemented backend features for selected CRUD workflows, request handling, validation, and issue resolution"
+          ]
+        },
+        {
+          "title": "Associate Software Engineer",
+          "company": "TCS",
+          "dates": "Jan 2021 - Feb 2022",
+          "bullets": [
+            "Contributed to React modules and API-connected user workflows",
+            "Built XML/XSL-based validation interfaces and systems for high-volume banking workflows",
+            "Automated recurring banking workflow tasks using scripts and APIs"
+          ]
+        }
+      ],
+      "projects": [
+        {
+          "title": "AI Chat Platform",
+          "organization": "Rakuten",
+          "role": "Frontend Lead",
+          "team": "1 junior developer",
+          "technologies": ["React", "TypeScript", "Node.js", "Express", "GraphQL"],
+          "description": "AI-powered reporting platform that turns user requests into structured reports, charts, SQL results, and PDF newsletters.",
+          "bullets": [
+            "Led frontend development for chat, report generation, tables, charts, SQL results, and newsletter outputs",
+            "Designed response-driven React components that render different result types from backend responses",
+            "Implemented session interfaces for creating, renaming, deleting, and switching between chat and report sessions",
+            "Built authentication, authorization, and session management with frontend token handling for secure user workflows",
+            "Developed supporting APIs for user queries and report-generation workflows"
+          ]
+        },
+        {
+          "title": "Topia Web App",
+          "organization": "",
+          "role": "Frontend Lead",
+          "team": "3 developers, including 2 junior developers",
+          "technologies": ["React", "TypeScript", "Node.js", "Express", "REST APIs", "Redux", "Tailwind CSS", "TanStack Query"],
+          "description": "Incremental migration of a complex enterprise application from .NET to React while backend services moved to Java.",
+          "bullets": [
+            "Led a frontend team of three developers, including two junior developers, across interconnected application modules",
+            "Decomposed the legacy application into independently deliverable React components and defined an incremental migration architecture",
+            "Recreated existing workflows using Redux, Tailwind CSS, and TanStack Query for API data fetching",
+            "Integrated REST APIs and coordinated authentication and authorization changes during the backend service migration"
+          ]
+        },
+        {
+          "title": "Nuvama Web App",
+          "organization": "",
+          "role": "Frontend Lead",
+          "team": "1 junior developer",
+          "technologies": ["React", "TypeScript", "Material-UI", "Redux", "GraphQL"],
+          "description": "Migration of a complex .NET web application to React with API-connected workflows and coordinated backend feature delivery.",
+          "bullets": [
+            "Worked with one junior developer, providing technical guidance and training throughout the migration",
+            "Owned frontend migration planning, ticket breakdown, and sprint execution across identified component areas",
+            "Rebuilt legacy workflows with React, Material-UI, Redux, and GraphQL while maintaining consistent user experiences",
+            "Established reusable component patterns and contributed to authentication and authorization changes"
+          ]
+        },
+        {
+          "title": "Carbon Emission Tracker",
+          "organization": "",
+          "role": "",
+          "team": "",
+          "technologies": ["React", "TypeScript", "Node.js", "Express", "GraphQL"],
+          "description": "Carbon accounting platform for calculating emissions from vehicles, machines, factories, and other operational sources.",
+          "bullets": [
+            "Built interactive dashboards with charts, data visualizations, and tables for categorized emission data",
+            "Implemented data-entry, categorization, and Excel upload workflows for enterprise users",
+            "Connected GraphQL queries and subscriptions to long-running report generation and real-time progress updates",
+            "Added Jest component tests and accessibility improvements as part of frontend quality standards"
+          ]
+        }
+      ]
+    }
+  }
+}
