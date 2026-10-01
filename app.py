@@ -20,7 +20,10 @@ load_dotenv(PROJECT_DIR / ".env")
 
 DATA_PATH = PROJECT_DIR / "resume_data.json"
 CUSTOM_DATA_PATH = PROJECT_DIR / "resume_custom.json"
-PERSISTENCE_MODE = os.environ.get("PERSISTENCE_MODE", "local").strip().lower()
+IS_RENDER = os.environ.get("RENDER", "").strip().lower() == "true" or bool(
+    os.environ.get("RENDER_EXTERNAL_URL", "").strip()
+)
+PERSISTENCE_MODE = "supabase" if IS_RENDER else os.environ.get("PERSISTENCE_MODE", "local").strip().lower()
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "").strip()
 ALLOWED_EMAILS = {

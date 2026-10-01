@@ -40,7 +40,7 @@ Hosted mode uses Supabase Auth and a private Postgres JSONB row for each user's 
 4. In the Render service environment, set `SUPABASE_URL`, `SUPABASE_KEY`, and `ALLOWED_EMAILS`. Use the Supabase publishable key or legacy anon key for `SUPABASE_KEY`; never use the `service_role` key.
 5. Deploy the service and open its Render URL. Only allowlisted accounts can sign in; row-level security restricts draft access to the authenticated user's own row.
 
-Render's blueprint marks these values as secrets and prompts for them during setup. Do not put real credentials in `.env.example`, source code, or Git. The app defaults to local mode unless `PERSISTENCE_MODE=supabase` is set.
+Render's blueprint marks these values as secrets and prompts for them during setup. Do not put real credentials in `.env.example`, source code, or Git. The app detects Render and forces Supabase mode even if `PERSISTENCE_MODE` is missing or accidentally set to `local`; it shows a configuration error rather than exposing resume data when Supabase settings are missing. Outside Render, it defaults to local mode unless `PERSISTENCE_MODE=supabase` is set.
 
 Keep the Git repository private because `resume_data.json` contains personal resume details. Render's URL is internet-reachable, but the app requires an allowlisted Supabase login before showing resume data.
 
