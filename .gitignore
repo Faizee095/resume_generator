@@ -13,3 +13,5 @@ htmlcov/
 .DS_Store
 Thumbs.db
 .streamlit/secrets.toml
+resume_custom.json
+.resume_custom_*.tmp

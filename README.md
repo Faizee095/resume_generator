@@ -26,7 +26,9 @@ streamlit run app.py
 
 The editor opens at `http://localhost:8501` by default.
 
-Choose a resume version, then select **Default data** to generate its default PDF or **Customize** to edit a session-only draft and generate a customized PDF. Customized drafts are not saved when the app session ends; the default data file is never changed by the editor.
+Choose a resume version, then select **Default data** to generate its default PDF or **Customize** to edit a custom draft and generate a customized PDF. Use **Save draft** to keep edits in the local, Git-ignored `resume_custom.json` across app restarts. The editor never changes `resume_data.json`; **Reset custom draft** removes the saved custom copy and reloads the defaults after confirmation.
+
+The custom draft is stored as a local JSON file without encryption. Keep the editor on your own computer until authentication and deployment protections are added.
 
 ## Generate PDFs
 

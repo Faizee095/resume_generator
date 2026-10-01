@@ -14,6 +14,7 @@ from resume_data import PROJECT_DIR
 
 
 DATA_PATH = PROJECT_DIR / "resume_data.json"
+CUSTOM_DATA_PATH = PROJECT_DIR / "resume_custom.json"
 SCRIPT_BY_VARIANT = {
     "frontend": "resume_frontend.py",
     "fullstack": "resume_fullstack.py",
@@ -68,6 +69,11 @@ def clean_editor_ids(value):
     return value
 
 
+def editor_key(key):
+    revision = st.session_state.get("draft_revision", 0)
+    return f"draft-{revision}-{key}"
+
+
 def edit_text(record, field, label, key, multiline=False, height=100, help_text=None):
     value = record.get(field, "")
     if isinstance(value, list):
@@ -75,9 +81,9 @@ def edit_text(record, field, label, key, multiline=False, height=100, help_text=
     value = str(value or "")
 
     if multiline:
-        updated = st.text_area(label, value=value, key=key, height=height, help=help_text)
+        updated = st.text_area(label, value=value, key=editor_key(key), height=height, help=help_text)
     else:
-        updated = st.text_input(label, value=value, key=key, help=help_text)
+        updated = st.text_input(label, value=value, key=editor_key(key), help=help_text)
     record[field] = updated
     return updated
 
@@ -104,7 +110,7 @@ def render_collection(items, title, key_prefix, new_item, draw_item, display_nam
             if controls[0].button(
                 "Move up",
                 icon=":material/arrow_upward:",
-                key=f"{key_prefix}-{item['_editor_id']}-up",
+                key=editor_key(f"{key_prefix}-{item['_editor_id']}-up"),
                 disabled=index == 0,
             ):
                 items[index - 1], items[index] = items[index], items[index - 1]
@@ -112,7 +118,7 @@ def render_collection(items, title, key_prefix, new_item, draw_item, display_nam
             if controls[1].button(
                 "Move down",
                 icon=":material/arrow_downward:",
-                key=f"{key_prefix}-{item['_editor_id']}-down",
+                key=editor_key(f"{key_prefix}-{item['_editor_id']}-down"),
                 disabled=index == len(items) - 1,
             ):
                 items[index + 1], items[index] = items[index], items[index + 1]
@@ -120,12 +126,12 @@ def render_collection(items, title, key_prefix, new_item, draw_item, display_nam
             if controls[2].button(
                 "Remove",
                 icon=":material/delete:",
-                key=f"{key_prefix}-{item['_editor_id']}-remove",
+                key=editor_key(f"{key_prefix}-{item['_editor_id']}-remove"),
             ):
                 items.pop(index)
                 st.rerun()
 
-    if st.button(ADD_LABELS[title], icon=":material/add:", key=f"{key_prefix}-add"):
+    if st.button(ADD_LABELS[title], icon=":material/add:", key=editor_key(f"{key_prefix}-add")):
         item = new_item()
         item["_editor_id"] = uuid.uuid4().hex
         items.append(item)
@@ -226,6 +232,57 @@ def data_signature(data):
     return json.dumps(clean_editor_ids(data), ensure_ascii=False, sort_keys=True)
 
 
+def validate_draft_structure(data, defaults):
+    if not isinstance(data, dict) or data.get("schema_version") != defaults.get("schema_version"):
+        raise ValueError("The saved draft has an unsupported data schema.")
+    if not isinstance(data.get("profile"), dict) or not isinstance(data["profile"].get("links"), list):
+        raise ValueError("The saved draft has invalid profile or link data.")
+    if not isinstance(data.get("education"), list):
+        raise ValueError("The saved draft has invalid education data.")
+    if not isinstance(data.get("variants"), dict) or set(data["variants"]) != set(defaults["variants"]):
+        raise ValueError("The saved draft does not contain the expected resume variants.")
+
+    for variant_id, variant in data["variants"].items():
+        for field in ("skills", "experience", "projects"):
+            if not isinstance(variant.get(field), list):
+                raise ValueError(f"The saved {variant_id} draft has invalid {field} data.")
+
+
+def load_custom_draft(defaults):
+    if not CUSTOM_DATA_PATH.exists():
+        return attach_editor_ids(copy.deepcopy(defaults)), None, None
+
+    try:
+        saved_data = json.loads(CUSTOM_DATA_PATH.read_text(encoding="utf-8"))
+        validate_draft_structure(saved_data, defaults)
+        return attach_editor_ids(saved_data), data_signature(saved_data), None
+    except (OSError, json.JSONDecodeError, TypeError, ValueError) as error:
+        message = f"Could not load {CUSTOM_DATA_PATH.name}: {error} Default data loaded; the saved file was left untouched."
+        return attach_editor_ids(copy.deepcopy(defaults)), None, message
+
+
+def save_custom_draft(data, defaults):
+    clean_data = clean_editor_ids(data)
+    validate_draft_structure(clean_data, defaults)
+    temporary_file = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            prefix=".resume_custom_",
+            suffix=".tmp",
+            dir=PROJECT_DIR,
+            delete=False,
+        ) as file:
+            temporary_file = Path(file.name)
+            json.dump(clean_data, file, ensure_ascii=False, indent=2)
+        os.replace(temporary_file, CUSTOM_DATA_PATH)
+    except OSError:
+        if temporary_file and temporary_file.exists():
+            temporary_file.unlink()
+        raise
+
+
 def generate_pdf(variant_id, resume_data):
     clean_data = clean_editor_ids(resume_data)
     with tempfile.TemporaryDirectory(prefix="resume-workshop-") as temporary_directory:
@@ -307,7 +364,11 @@ def new_record(**fields):
 if "default_data" not in st.session_state:
     st.session_state["default_data"] = read_default_data()
 if "draft_data" not in st.session_state:
-    st.session_state["draft_data"] = attach_editor_ids(copy.deepcopy(st.session_state["default_data"]))
+    draft, saved_signature, load_error = load_custom_draft(st.session_state["default_data"])
+    st.session_state["draft_data"] = draft
+    st.session_state["saved_draft_signature"] = saved_signature
+    st.session_state["draft_load_error"] = load_error
+    st.session_state["draft_revision"] = 0
 
 st.title("Resume Workshop")
 st.markdown("Generate a resume from defaults or customize a session-only draft.")
@@ -426,6 +487,48 @@ else:
         st.write(" · ".join(project["title"] for project in variant["projects"] if project.get("title")))
 
     signature = data_signature(draft)
+    saved_signature = st.session_state.get("saved_draft_signature")
+    if st.session_state.get("draft_load_error"):
+        st.error(st.session_state["draft_load_error"])
+    if saved_signature is None:
+        st.info("No saved custom draft yet.")
+    elif signature == saved_signature:
+        st.success("Draft saved. No unsaved changes.")
+    else:
+        st.warning("You have unsaved changes.")
+
+    save_column, reset_column = st.columns([1, 2])
+    with save_column:
+        if st.button("Save draft", icon=":material/save:", key="save-custom-draft"):
+            try:
+                save_custom_draft(draft, st.session_state["default_data"])
+                st.session_state["saved_draft_signature"] = signature
+                st.session_state["draft_load_error"] = None
+                st.success("Draft saved on this computer.")
+            except (OSError, TypeError, ValueError) as error:
+                st.error(f"Could not save the draft: {error}")
+    with reset_column:
+        reset_confirmed = st.checkbox(
+            "Confirm reset to the default data",
+            key=editor_key("confirm-reset"),
+        )
+        if st.button("Reset custom draft", icon=":material/restore:", key="reset-custom-draft"):
+            if not reset_confirmed:
+                st.error("Confirm the reset before continuing.")
+            else:
+                try:
+                    CUSTOM_DATA_PATH.unlink(missing_ok=True)
+                    defaults = st.session_state["default_data"]
+                    st.session_state["draft_data"] = attach_editor_ids(copy.deepcopy(defaults))
+                    st.session_state["saved_draft_signature"] = None
+                    st.session_state["draft_load_error"] = None
+                    st.session_state["draft_revision"] += 1
+                    st.session_state.pop("generated_artifact", None)
+                    st.session_state.pop("generation_issues", None)
+                    st.rerun()
+                except OSError as error:
+                    st.error(f"Could not reset the draft: {error}")
+
     validation_issues = validate_resume(draft, variant_id)
     if validation_issues:
         st.warning(f"{len(validation_issues)} field checks need attention before PDF generation.")
