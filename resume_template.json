@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "profile": {
+    "name": "",
+    "location": "",
+    "email": "",
+    "phone": "",
+    "links": []
+  },
+  "education": [],
+  "variants": {
+    "frontend": {
+      "label": "Frontend Developer",
+      "output_name": "Resume_Frontend",
+      "headline": "Frontend Engineer | React | TypeScript",
+      "summary": "",
+      "skills": [],
+      "experience": [],
+      "projects": []
+    },
+    "fullstack": {
+      "label": "Full Stack Developer",
+      "output_name": "Resume_Fullstack",
+      "headline": "Full Stack Developer | Frontend | APIs",
+      "summary": "",
+      "skills": [],
+      "experience": [],
+      "projects": []
+    },
+    "fullstack_frontend_lead": {
+      "label": "Full Stack Developer (Frontend Lead)",
+      "output_name": "Resume_Fullstack_Frontend_Lead",
+      "headline": "Full Stack Developer | Frontend Lead",
+      "summary": "",
+      "skills": [],
+      "experience": [],
+      "projects": []
+    }
+  }
+}

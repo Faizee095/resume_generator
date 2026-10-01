@@ -28,6 +28,7 @@ from resume_library import (
 load_dotenv(PROJECT_DIR / ".env")
 
 DATA_PATH = PROJECT_DIR / "resume_data.json"
+TEMPLATE_DATA_PATH = PROJECT_DIR / "resume_template.json"
 CUSTOM_DATA_PATH = PROJECT_DIR / "resume_custom.json"
 IS_RENDER = os.environ.get("RENDER", "").strip().lower() == "true" or bool(
     os.environ.get("RENDER_EXTERNAL_URL", "").strip()
@@ -35,6 +36,7 @@ IS_RENDER = os.environ.get("RENDER", "").strip().lower() == "true" or bool(
 PERSISTENCE_MODE = "supabase" if IS_RENDER else os.environ.get("PERSISTENCE_MODE", "local").strip().lower()
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "").strip()
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "").strip().lower()
 ALLOWED_EMAILS = {
     email.strip().lower()
     for email in os.environ.get("ALLOWED_EMAILS", "").split(",")
@@ -72,6 +74,16 @@ def read_default_data():
     return json.loads(DATA_PATH.read_text(encoding="utf-8"))
 
 
+def read_user_template():
+    return json.loads(TEMPLATE_DATA_PATH.read_text(encoding="utf-8"))
+
+
+def user_role(email):
+    if PERSISTENCE_MODE != "supabase" or email.strip().lower() == ADMIN_EMAIL:
+        return "admin"
+    return "user"
+
+
 def saved_resume_signature(data, name, variant_id):
     return json.dumps({
         "data": json.loads(data_signature(data)),
@@ -95,19 +107,21 @@ def show_login():
         submitted = st.form_submit_button("Sign in", type="primary")
 
     if submitted:
-        if email.strip().lower() not in ALLOWED_EMAILS:
+        normalized_email = email.strip().lower()
+        if normalized_email != ADMIN_EMAIL and normalized_email not in ALLOWED_EMAILS:
             st.error("This email is not authorized to use this resume workspace.")
             return
         try:
             client = get_supabase_client()
             response = client.auth.sign_in_with_password({
-                "email": email.strip(),
+                "email": normalized_email,
                 "password": password,
             })
             if response.user is None:
                 raise ValueError("Supabase did not return an authenticated user.")
             st.session_state["supabase_user_id"] = response.user.id
-            st.session_state["supabase_user_email"] = response.user.email or email.strip()
+            st.session_state["supabase_user_email"] = response.user.email or normalized_email
+            st.session_state["supabase_user_role"] = user_role(st.session_state["supabase_user_email"])
             st.rerun()
         except Exception:
             st.error("Sign-in failed. Check the credentials and Supabase Auth configuration.")
@@ -531,6 +545,7 @@ if PERSISTENCE_MODE == "supabase":
         name for name, value in (
             ("SUPABASE_URL", SUPABASE_URL),
             ("SUPABASE_KEY", SUPABASE_KEY),
+            ("ADMIN_EMAIL", ADMIN_EMAIL),
             ("ALLOWED_EMAILS", ALLOWED_EMAILS),
         ) if not value
     ]
@@ -541,9 +556,31 @@ if PERSISTENCE_MODE == "supabase":
         show_login()
         st.stop()
 
+if PERSISTENCE_MODE == "supabase":
+    current_role = user_role(st.session_state.get("supabase_user_email", ""))
+    if st.session_state.get("supabase_user_role") != current_role:
+        role_scoped_keys = {
+            "default_data",
+            "draft_data",
+            "saved_draft_signature",
+            "draft_load_error",
+            "draft_revision",
+            "active_saved_resume_id",
+            "active_saved_resume_name",
+            "generated_artifact",
+            "history_pdf_artifact",
+            "generation_issues",
+        }
+        for key in list(st.session_state):
+            if key.startswith("draft-") or key in role_scoped_keys:
+                st.session_state.pop(key, None)
+        st.session_state["supabase_user_role"] = current_role
 
 if "default_data" not in st.session_state:
-    st.session_state["default_data"] = read_default_data()
+    if user_role(st.session_state.get("supabase_user_email", "")) == "admin":
+        st.session_state["default_data"] = read_default_data()
+    else:
+        st.session_state["default_data"] = read_user_template()
 if "draft_data" not in st.session_state:
     draft, saved_signature, load_error = load_custom_draft(st.session_state["default_data"])
     st.session_state["draft_data"] = draft
@@ -571,11 +608,16 @@ with st.sidebar:
                     "supabase_client",
                     "supabase_user_id",
                     "supabase_user_email",
+                    "supabase_user_role",
+                    "default_data",
                     "draft_data",
                     "saved_draft_signature",
                     "draft_load_error",
                     "draft_revision",
+                    "active_saved_resume_id",
+                    "active_saved_resume_name",
                     "generated_artifact",
+                    "history_pdf_artifact",
                     "generation_issues",
                 }:
                     st.session_state.pop(key, None)
@@ -724,6 +766,7 @@ elif workspace == "Customize":
 
     if (
         PERSISTENCE_MODE == "supabase"
+        and st.session_state.get("supabase_user_role") == "admin"
         and saved_signature is None
         and CUSTOM_DATA_PATH.exists()
     ):
