@@ -8,11 +8,25 @@ The project generates three PDF resumes from the editable defaults in `resume_da
 
 ## Setup
 
-Install the PDF dependency:
+Create and activate the project environment, then install the app and PDF dependencies:
 
 ```powershell
-python -m pip install reportlab
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 ```
+
+## Open the Local Editor
+
+Start the local web app:
+
+```powershell
+streamlit run app.py
+```
+
+The editor opens at `http://localhost:8501` by default.
+
+Choose a resume version, then select **Default data** to generate its default PDF or **Customize** to edit a session-only draft and generate a customized PDF. Customized drafts are not saved when the app session ends; the default data file is never changed by the editor.
 
 ## Generate PDFs
 
@@ -36,4 +50,4 @@ Edit `resume_data.json` to update the defaults used by the generators:
 - Experience and project bullets are arrays. Project organization, role, team, technologies, description, and bullets are separate fields.
 - `output_name` controls the generated PDF filename prefix for a variant.
 
-The current generators use these defaults directly. A browser-based editor and customized-data workflow have not been added yet.
+The command-line generators use these defaults directly. The local editor provides the same defaults and customized PDF generation through the browser.

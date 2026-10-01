@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime
 from pathlib import Path
 from xml.sax.saxutils import escape, quoteattr
@@ -8,7 +9,8 @@ PROJECT_DIR = Path(__file__).resolve().parent
 
 
 def load_resume(variant_id):
-    data = json.loads((PROJECT_DIR / "resume_data.json").read_text(encoding="utf-8"))
+    data_path = Path(os.environ.get("RESUME_DATA_PATH", PROJECT_DIR / "resume_data.json"))
+    data = json.loads(data_path.read_text(encoding="utf-8"))
     profile = data["profile"]
     education = data["education"]
     variant = data["variants"][variant_id]
@@ -29,14 +31,17 @@ def output_path(variant):
         3: "rd",
     }.get(today.day % 10, "th")
     date_label = f"{today.day}{day_suffix}{today.strftime('%B%Y')}"
-    return PROJECT_DIR / f"{variant['output_name']}_{date_label}.pdf"
+    output_dir = Path(os.environ.get("RESUME_OUTPUT_DIR", PROJECT_DIR))
+    output_name = Path(variant["output_name"]).name
+    return output_dir / f"{output_name}_{date_label}.pdf"
 
 
 def contact_line(profile):
-    items = [escape(profile[key]) for key in ("location", "email", "phone")]
+    items = [escape(profile[key]) for key in ("location", "email", "phone") if profile.get(key)]
     items.extend(
         f"<link href={quoteattr(link['url'])} color=\"#2563eb\">{escape(link['label'])}</link>"
         for link in profile["links"]
+        if link.get("label") and link.get("url")
     )
     return "  |  ".join(items)
 
