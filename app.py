@@ -30,10 +30,10 @@ from resume_library import (
 
 load_dotenv(PROJECT_DIR / ".env")
 
-DATA_PATH = PROJECT_DIR / "resume_data.json"
+DATA_PATH = Path(os.environ.get("RESUME_DEFAULT_DATA_PATH", PROJECT_DIR / "resume_data.json"))
 TEMPLATE_DATA_PATH = PROJECT_DIR / "resume_template.json"
 SAHIL_DATA_PATH = PROJECT_DIR / "sahil_resume.json"
-CUSTOM_DATA_PATH = PROJECT_DIR / "resume_custom.json"
+CUSTOM_DATA_PATH = Path(os.environ.get("RESUME_CUSTOM_DATA_PATH", PROJECT_DIR / "resume_custom.json"))
 IS_RENDER = os.environ.get("RENDER", "").strip().lower() == "true" or bool(
     os.environ.get("RENDER_EXTERNAL_URL", "").strip()
 )
@@ -452,7 +452,7 @@ def save_custom_draft(data, defaults):
             encoding="utf-8",
             prefix=".resume_custom_",
             suffix=".tmp",
-            dir=PROJECT_DIR,
+            dir=CUSTOM_DATA_PATH.parent,
             delete=False,
         ) as file:
             temporary_file = Path(file.name)

@@ -27,7 +27,7 @@ streamlit run app.py
 
 The editor opens at `http://localhost:8501` by default. Local mode needs no Supabase account and stores its single custom draft in the ignored `resume_custom.json` file.
 
-Choose a resume version and a PDF design: **Classic (current)**, **Modern**, **Elegant**, **Compact**, **Executive**, **Timeline**, or **ATS-Friendly**. Select **Preview PDF** to see the exact rendered document inline before generating or downloading it. The preview becomes stale when the resume data or design changes; generating from a current preview reuses those same PDF bytes. The design selector applies to default, customized, and saved-draft PDFs. Use **Customize** to edit a draft and **Save draft** to keep edits in the local, Git-ignored `resume_custom.json` across app restarts. The editor never changes `resume_data.json`; **Reset custom draft** removes the saved custom copy and reloads the defaults after confirmation.
+Choose a resume version and a PDF design: **Classic (current)**, **Modern**, **Elegant**, **Compact**, **Executive**, **Timeline**, or **ATS-Friendly**. Select **Preview PDF** to see the exact rendered document in a popup before generating or downloading it. The preview becomes stale when the resume data or design changes; generating from a current preview reuses those same PDF bytes. The design selector applies to default, customized, and saved-draft PDFs. Use **Customize** to edit a draft and **Save draft** to keep edits in the local, Git-ignored `resume_custom.json` across app restarts. The editor never changes `resume_data.json`; **Reset custom draft** removes the saved custom copy and reloads the defaults after confirmation.
 
 The ATS-Friendly design uses a simple, single-column structure, standard section names, and visible contact URLs to support text extraction by applicant tracking systems. ATS parsing varies by vendor, so no PDF layout can guarantee acceptance by every system.
 
@@ -36,6 +36,23 @@ The ATS-Friendly design uses a simple, single-column structure, standard section
 Each design is a Python module in `resume_templates/`. The template registry discovers modules that declare `TEMPLATE_ID`, `TEMPLATE_LABEL`, `TEMPLATE_ORDER`, and a `render_pdf(profile, education, resume, variant_id, output_path)` function. Add a module that follows this interface to add a design; shared PDF helpers live in `resume_templates/_shared.py`. The Classic design continues to use each resume version's existing generator.
 
 Local custom drafts are stored as JSON without encryption. Keep local mode on your own computer.
+
+## Run regression tests
+
+Install the development dependencies into the project environment:
+
+```powershell
+python -m pip install -r requirements-dev.txt
+python -m playwright install chromium
+```
+
+Run the deterministic regression suite before committing:
+
+```powershell
+python -m pytest -m "not browser"
+```
+
+The browser-marked preview/responsiveness check can be run separately with `python -m pytest -m browser`. Install the local pre-commit hook once with `python -m pre_commit install`; it runs the deterministic suite on each commit. GitHub Actions runs both the deterministic and browser checks for pushes and pull requests.
 
 ## Supabase and Render
 

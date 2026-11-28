@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: regression-tests
+        name: Run deterministic regression tests
+        entry: python tests/run_regression_suite.py
+        language: system
+        pass_filenames: false
+        always_run: true
