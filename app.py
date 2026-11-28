@@ -10,6 +10,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
+import fitz
 import streamlit as st
 from dotenv import load_dotenv
 from supabase import create_client
@@ -48,6 +49,7 @@ SCRIPT_BY_VARIANT = {
     "customer_relations": "resume_customer_relations.py",
 }
 PDF_LAYOUTS = template_options()
+PDF_LAYOUT_LABELS = {layout_id: label for label, layout_id in PDF_LAYOUTS.items()}
 ADD_LABELS = {
     "Links": "Add link",
     "Education entries": "Add education entry",
@@ -64,6 +66,20 @@ st.markdown(
     [data-testid="stAppViewContainer"] { background: #f5f6f2; }
     [data-testid="stSidebar"] { background: #e9eee9; }
     [data-testid="stHeader"] { background: rgba(245, 246, 242, 0.92); }
+    [data-testid="stDialog"] [data-testid="stVerticalBlockBorderWrapper"]:has(
+        img[alt="PDF page preview"]
+    ) {
+        height: min(80vh, calc(100vh - 280px)) !important;
+    }
+    @media (max-width: 640px) {
+        [data-testid="stDialog"] [data-testid="stHorizontalBlock"] {
+            flex-wrap: nowrap !important;
+            gap: 0.25rem;
+        }
+        [data-testid="stDialog"] [data-testid="stColumn"] {
+            min-width: 0 !important;
+        }
+    }
     div[data-testid="stMetric"] { background: #ffffff; border: 1px solid #dfe5df; padding: 12px; }
     </style>
     """,
@@ -502,7 +518,7 @@ def record_download_request(user_id, artifact):
         st.session_state["pdf_history_error"] = "The PDF downloaded, but it could not be added to history."
 
 
-def render_download(variant_id, signature, layout_id):
+def render_download(variant_id, signature, layout_id, saved_resume_id=None):
     artifact = st.session_state.get("generated_artifact")
     if not artifact:
         return
@@ -510,6 +526,7 @@ def render_download(variant_id, signature, layout_id):
         artifact["variant_id"] != variant_id
         or artifact["signature"] != signature
         or artifact.get("layout_id") != layout_id
+        or artifact.get("saved_resume_id") != saved_resume_id
     ):
         return
     st.download_button(
@@ -530,6 +547,179 @@ def render_download(variant_id, signature, layout_id):
         st.warning(history_error)
 
 
+def render_pdf_pages(pdf_content):
+    try:
+        with fitz.open(stream=pdf_content, filetype="pdf") as document:
+            pages = [
+                page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5), alpha=False).tobytes("png")
+                for page in document
+            ]
+    except (fitz.FileDataError, RuntimeError, ValueError) as error:
+        raise RuntimeError(f"Could not render the PDF preview: {error}") from error
+    if not pages:
+        raise RuntimeError("The PDF preview has no pages.")
+    return pages
+
+
+def change_pdf_preview_page(page_key, offset, page_count):
+    current_page = st.session_state.get(page_key, 0)
+    st.session_state[page_key] = max(0, min(page_count - 1, current_page + offset))
+
+
+def change_pdf_preview_zoom(zoom_key, offset):
+    current_zoom = st.session_state.get(zoom_key, 100)
+    st.session_state[zoom_key] = max(50, min(200, current_zoom + offset))
+
+
+def reset_pdf_preview_zoom(zoom_key):
+    st.session_state[zoom_key] = 100
+
+
+def show_pdf_preview(preview):
+    if "pages" not in preview:
+        try:
+            preview["pages"] = render_pdf_pages(preview["content"])
+        except RuntimeError as error:
+            st.error(str(error))
+            return
+    viewer_key = preview.setdefault(
+        "viewer_key",
+        preview.get("saved_resume_id") or f"{preview['variant_id']}-{preview['layout_id']}",
+    )
+    page_key = f"pdf-preview-page-{viewer_key}"
+    page_count = len(preview["pages"])
+    page_index = st.session_state.get(page_key, 0)
+    if page_index < 0 or page_index >= page_count:
+        page_index = 0
+    st.session_state[page_key] = page_index
+    zoom_key = f"pdf-preview-zoom-{viewer_key}"
+    st.session_state.setdefault(zoom_key, 100)
+    zoom = st.session_state.get(zoom_key, 100)
+
+    previous_column, page_column, next_column = st.columns([1, 2, 1])
+    previous_column.button(
+        "Prev",
+        help="Previous PDF page",
+        key=f"{page_key}-previous",
+        disabled=page_index == 0,
+        on_click=change_pdf_preview_page,
+        args=(page_key, -1, page_count),
+    )
+    page_column.markdown(f"Page **{page_index + 1}** of {page_count}")
+    next_column.button(
+        "Next",
+        key=f"{page_key}-next",
+        disabled=page_index >= page_count - 1,
+        on_click=change_pdf_preview_page,
+        args=(page_key, 1, page_count),
+    )
+    zoom_columns = st.columns([1, 1, 1, 1])
+    zoom_columns[0].button(
+        "-",
+        help="Zoom out",
+        key=f"{zoom_key}-out",
+        disabled=zoom <= 50,
+        on_click=change_pdf_preview_zoom,
+        args=(zoom_key, -25),
+    )
+    zoom_columns[1].markdown(f"**{zoom}%**")
+    zoom_columns[2].button(
+        "+",
+        help="Zoom in",
+        key=f"{zoom_key}-in",
+        disabled=zoom >= 200,
+        on_click=change_pdf_preview_zoom,
+        args=(zoom_key, 25),
+    )
+    zoom_columns[3].button(
+        "Reset",
+        help="Reset zoom to 100%",
+        key=f"{zoom_key}-reset",
+        on_click=reset_pdf_preview_zoom,
+        args=(zoom_key,),
+    )
+    page_image = base64.b64encode(
+        preview["pages"][st.session_state[page_key]]
+    ).decode("ascii")
+    with st.container(height=640, border=True):
+        st.markdown(
+            f'<div style="width:100%; overflow-x:auto; text-align:center;">'
+            f'<img src="data:image/png;base64,{page_image}" '
+            f'style="display:inline-block; width:{zoom}%; max-width:none; height:auto;" '
+            f'alt="PDF page preview"></div>',
+            unsafe_allow_html=True,
+        )
+
+
+@st.dialog("PDF Preview", width="large")
+def display_pdf_preview_dialog():
+    preview = st.session_state.get("pdf_preview_artifact")
+    if not preview:
+        st.info("Generate a preview first.")
+        return
+
+    if preview.get("layout_id") in PDF_LAYOUT_LABELS:
+        st.caption(f"{PDF_LAYOUT_LABELS[preview['layout_id']]} - {preview['filename']}")
+    else:
+        st.caption(preview["filename"])
+    show_pdf_preview(preview)
+
+
+def render_pdf_preview_button(
+    variant_id,
+    payload,
+    signature,
+    layout_id,
+    key,
+    resume_name=None,
+    saved_resume_id=None,
+):
+    if st.button("Preview PDF", icon=":material/preview:", key=f"preview-{key}"):
+        issues = validate_resume(payload, variant_id)
+        if issues:
+            st.error("Fix these fields before previewing the PDF:")
+            for issue in issues:
+                st.error(issue)
+        else:
+            try:
+                preview = st.session_state.get("pdf_preview_artifact")
+                preview_matches = (
+                    preview
+                    and preview.get("variant_id") == variant_id
+                    and preview.get("signature") == signature
+                    and preview.get("layout_id") == layout_id
+                    and preview.get("saved_resume_id") == saved_resume_id
+                )
+                if not preview_matches:
+                    with st.spinner("Preparing PDF preview..."):
+                        filename, content = generate_pdf(variant_id, payload, layout_id)
+                        pages = render_pdf_pages(content)
+                    st.session_state["pdf_preview_artifact"] = {
+                        "variant_id": variant_id,
+                        "signature": signature,
+                        "layout_id": layout_id,
+                        "filename": filename,
+                        "content": content,
+                        "pages": pages,
+                        "resume_name": resume_name or payload["variants"][variant_id]["label"],
+                        "saved_resume_id": saved_resume_id,
+                        "viewer_key": key,
+                    }
+                    st.session_state[f"pdf-preview-page-{key}"] = 0
+                display_pdf_preview_dialog()
+            except (OSError, RuntimeError, subprocess.TimeoutExpired) as error:
+                st.session_state.pop("pdf_preview_artifact", None)
+                st.error(f"Could not prepare the PDF preview: {error}")
+
+    preview = st.session_state.get("pdf_preview_artifact")
+    if not preview or preview.get("saved_resume_id") != saved_resume_id:
+        return
+    if preview["variant_id"] != variant_id:
+        return
+    if preview["signature"] != signature or preview["layout_id"] != layout_id:
+        st.info("This preview is out of date. Preview again to see the current data and design.")
+
+
 def render_generate_button(
     variant_id,
     payload,
@@ -547,8 +737,19 @@ def render_generate_button(
         else:
             st.session_state.pop("generation_issues", None)
             try:
-                with st.spinner("Building PDF..."):
-                    filename, content = generate_pdf(variant_id, payload, layout_id)
+                preview = st.session_state.get("pdf_preview_artifact")
+                preview_matches = (
+                    preview
+                    and preview.get("variant_id") == variant_id
+                    and preview.get("signature") == signature
+                    and preview.get("layout_id") == layout_id
+                    and preview.get("saved_resume_id") == saved_resume_id
+                )
+                if preview_matches:
+                    filename, content = preview["filename"], preview["content"]
+                else:
+                    with st.spinner("Building PDF..."):
+                        filename, content = generate_pdf(variant_id, payload, layout_id)
                 st.session_state["generated_artifact"] = {
                     "variant_id": variant_id,
                     "signature": signature,
@@ -564,7 +765,12 @@ def render_generate_button(
 
     for issue in st.session_state.get("generation_issues", []):
         st.error(issue)
-    render_download(variant_id, signature, layout_id)
+    render_download(
+        variant_id,
+        signature,
+        layout_id,
+        saved_resume_id=saved_resume_id,
+    )
 
 
 def new_record(**fields):
@@ -591,32 +797,59 @@ def open_saved_resume(resume_id):
         st.session_state["workspace-mode"] = "Customize"
         st.session_state["draft_revision"] += 1
         st.session_state.pop("generated_artifact", None)
+        st.session_state.pop("pdf_preview_artifact", None)
         st.session_state.pop("generation_issues", None)
         st.session_state.pop("library_error", None)
     except Exception as error:
         st.session_state["library_error"] = f"Could not open saved resume: {error}"
 
 
-def prepare_saved_resume_pdf(record, layout_id):
+def prepare_saved_resume_pdf(record, layout_id, preview_only=False):
     issues = validate_resume(record["data"], record["variant_id"])
     if issues:
-        st.error("This saved resume needs attention before generating a PDF: " + " ".join(issues))
-        return
+        st.error("This saved resume needs attention before preparing its PDF: " + " ".join(issues))
+        return False
     try:
-        with st.spinner("Building PDF..."):
-            filename, content = generate_pdf(record["variant_id"], record["data"], layout_id)
-        st.session_state["generated_artifact"] = {
+        signature = data_signature(record["data"])
+        preview = st.session_state.get("pdf_preview_artifact")
+        preview_matches = (
+            preview
+            and preview.get("variant_id") == record["variant_id"]
+            and preview.get("signature") == signature
+            and preview.get("layout_id") == layout_id
+            and preview.get("saved_resume_id") == record["id"]
+        )
+        if preview_matches:
+            filename, content = preview["filename"], preview["content"]
+        else:
+            with st.spinner("Preparing PDF..."):
+                filename, content = generate_pdf(record["variant_id"], record["data"], layout_id)
+        pages = preview["pages"] if preview_matches and preview_only else None
+        if preview_only and pages is None:
+            pages = render_pdf_pages(content)
+        artifact = {
             "variant_id": record["variant_id"],
-            "signature": data_signature(record["data"]),
+            "signature": signature,
             "layout_id": layout_id,
             "filename": filename,
             "content": content,
             "resume_name": record["name"],
             "saved_resume_id": record["id"],
+            "saved_resume_updated_at": record.get("updated_at"),
         }
+        if pages is not None:
+            artifact["pages"] = pages
+        artifact_key = "pdf_preview_artifact" if preview_only else "generated_artifact"
+        if preview_only:
+            artifact["viewer_key"] = f"saved-{record['id']}"
+            st.session_state[f"pdf-preview-page-saved-{record['id']}"] = 0
+        st.session_state[artifact_key] = artifact
         st.session_state.pop("generation_issues", None)
+        return True
     except Exception as error:
-        st.error(f"Could not generate the PDF: {error}")
+        action = "preview" if preview_only else "generate"
+        st.error(f"Could not {action} the PDF: {error}")
+        return False
 
 
 if PERSISTENCE_MODE not in {"local", "supabase"}:
@@ -650,6 +883,7 @@ if PERSISTENCE_MODE == "supabase":
             "active_saved_resume_id",
             "active_saved_resume_name",
             "generated_artifact",
+            "pdf_preview_artifact",
             "history_pdf_artifact",
             "generation_issues",
         }
@@ -700,6 +934,7 @@ with st.sidebar:
                     "active_saved_resume_id",
                     "active_saved_resume_name",
                     "generated_artifact",
+                    "pdf_preview_artifact",
                     "history_pdf_artifact",
                     "generation_issues",
                 }:
@@ -741,10 +976,18 @@ if workspace == "Generate":
         metrics[2].metric("Projects", len(default_variant["projects"]))
 
     payload = st.session_state["default_data"]
+    signature = data_signature(payload)
+    render_pdf_preview_button(
+        variant_id,
+        payload,
+        signature,
+        layout_id,
+        key="default-pdf",
+    )
     render_generate_button(
         variant_id,
         payload,
-        data_signature(payload),
+        signature,
         "Generate default PDF",
         layout_id=layout_id,
     )
@@ -946,6 +1189,7 @@ elif workspace == "Customize":
                 st.session_state["draft_load_error"] = None
                 st.session_state["draft_revision"] += 1
                 st.session_state.pop("generated_artifact", None)
+                st.session_state.pop("pdf_preview_artifact", None)
                 st.session_state.pop("generation_issues", None)
                 st.rerun()
             except Exception as error:
@@ -1025,6 +1269,7 @@ elif workspace == "Customize":
                 st.session_state["draft_load_error"] = None
                 st.session_state["draft_revision"] += 1
                 st.session_state.pop("generated_artifact", None)
+                st.session_state.pop("pdf_preview_artifact", None)
                 st.session_state.pop("generation_issues", None)
                 st.rerun()
     else:
@@ -1069,6 +1314,15 @@ elif workspace == "Customize":
         with st.expander("Review validation details"):
             for issue in validation_issues:
                 st.write(f"- {issue}")
+    render_pdf_preview_button(
+        variant_id,
+        draft,
+        signature,
+        layout_id,
+        key="customized-pdf",
+        resume_name=draft_name if PERSISTENCE_MODE == "supabase" else None,
+        saved_resume_id=st.session_state.get("active_saved_resume_id"),
+    )
     render_generate_button(
         variant_id,
         draft,
@@ -1103,7 +1357,7 @@ elif workspace == "Saved drafts":
             ).get("label", saved_resume["variant_id"])
             with st.expander(f"{saved_resume['name']}  ·  {variant_label}"):
                 st.caption(f"Updated {saved_resume['updated_at']}")
-                open_column, pdf_column, delete_column = st.columns(3)
+                open_column, preview_column, pdf_column, delete_column = st.columns(4)
                 open_column.button(
                     "Open in editor",
                     icon=":material/edit:",
@@ -1111,6 +1365,21 @@ elif workspace == "Saved drafts":
                     on_click=open_saved_resume,
                     args=(saved_resume["id"],),
                 )
+                if preview_column.button(
+                    "Preview PDF",
+                    icon=":material/preview:",
+                    key=f"preview-saved-{saved_resume['id']}",
+                ):
+                    try:
+                        full_record = get_saved_resume(
+                            get_supabase_client(),
+                            st.session_state["supabase_user_id"],
+                            saved_resume["id"],
+                        )
+                        if prepare_saved_resume_pdf(full_record, layout_id, preview_only=True):
+                            display_pdf_preview_dialog()
+                    except Exception as error:
+                        st.error(f"Could not prepare this preview: {error}")
                 if pdf_column.button(
                     "Generate PDF",
                     icon=":material/picture_as_pdf:",
@@ -1146,6 +1415,9 @@ elif workspace == "Saved drafts":
                             st.session_state["active_saved_resume_id"] = None
                             st.session_state["active_saved_resume_name"] = ""
                             st.session_state["saved_draft_signature"] = None
+                        preview = st.session_state.get("pdf_preview_artifact")
+                        if preview and preview.get("saved_resume_id") == saved_resume["id"]:
+                            st.session_state.pop("pdf_preview_artifact", None)
                         st.session_state.pop("generated_artifact", None)
                         st.rerun()
                     except Exception as error:
@@ -1153,7 +1425,20 @@ elif workspace == "Saved drafts":
 
                 artifact = st.session_state.get("generated_artifact")
                 if artifact and artifact.get("saved_resume_id") == saved_resume["id"]:
-                    render_download(artifact["variant_id"], artifact["signature"], layout_id)
+                    render_download(
+                        artifact["variant_id"],
+                        artifact["signature"],
+                        layout_id,
+                        saved_resume_id=saved_resume["id"],
+                    )
+
+                preview = st.session_state.get("pdf_preview_artifact")
+                if preview and preview.get("saved_resume_id") == saved_resume["id"]:
+                    if (
+                        preview.get("saved_resume_updated_at") != saved_resume["updated_at"]
+                        or preview.get("layout_id") != layout_id
+                    ):
+                        st.info("This preview is out of date. Preview again to see the current data and design.")
 elif workspace == "PDF downloads":
     st.subheader("PDF downloads")
     if PERSISTENCE_MODE != "supabase":
@@ -1197,12 +1482,33 @@ elif workspace == "PDF downloads":
                             "id": pdf_record["id"],
                             "filename": filename,
                             "content": content,
+                            "viewer_key": f"history-{pdf_record['id']}",
                         }
+                        st.session_state[
+                            f"pdf-preview-page-history-{pdf_record['id']}"
+                        ] = 0
                     except Exception as error:
                         st.error(f"Could not retrieve this PDF: {error}")
 
                 artifact = st.session_state.get("history_pdf_artifact")
                 if artifact and artifact["id"] == pdf_record["id"]:
+                    if st.button(
+                        "Preview PDF",
+                        icon=":material/preview:",
+                        key=f"preview-history-{pdf_record['id']}",
+                    ):
+                        st.session_state["pdf_preview_artifact"] = {
+                            "variant_id": "history",
+                            "signature": pdf_record["id"],
+                            "layout_id": "archived",
+                            "filename": artifact["filename"],
+                            "content": artifact["content"],
+                            "viewer_key": f"history-{pdf_record['id']}",
+                        }
+                        st.session_state[
+                            f"pdf-preview-page-history-{pdf_record['id']}"
+                        ] = 0
+                        display_pdf_preview_dialog()
                     st.download_button(
                         "Download PDF",
                         data=artifact["content"],

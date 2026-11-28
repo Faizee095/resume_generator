@@ -27,7 +27,7 @@ streamlit run app.py
 
 The editor opens at `http://localhost:8501` by default. Local mode needs no Supabase account and stores its single custom draft in the ignored `resume_custom.json` file.
 
-Choose a resume version and a PDF design: **Classic (current)**, **Modern**, **Elegant**, **Compact**, **Executive**, **Timeline**, or **ATS-Friendly**. The design selector applies to default, customized, and saved-draft PDF generation. Use **Customize** to edit a draft and **Save draft** to keep edits in the local, Git-ignored `resume_custom.json` across app restarts. The editor never changes `resume_data.json`; **Reset custom draft** removes the saved custom copy and reloads the defaults after confirmation.
+Choose a resume version and a PDF design: **Classic (current)**, **Modern**, **Elegant**, **Compact**, **Executive**, **Timeline**, or **ATS-Friendly**. Select **Preview PDF** to see the exact rendered document inline before generating or downloading it. The preview becomes stale when the resume data or design changes; generating from a current preview reuses those same PDF bytes. The design selector applies to default, customized, and saved-draft PDFs. Use **Customize** to edit a draft and **Save draft** to keep edits in the local, Git-ignored `resume_custom.json` across app restarts. The editor never changes `resume_data.json`; **Reset custom draft** removes the saved custom copy and reloads the defaults after confirmation.
 
 The ATS-Friendly design uses a simple, single-column structure, standard section names, and visible contact URLs to support text extraction by applicant tracking systems. ATS parsing varies by vendor, so no PDF layout can guarantee acceptance by every system.
 
