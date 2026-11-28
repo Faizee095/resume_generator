@@ -5,6 +5,7 @@ The project generates three PDF resumes from the editable defaults in `resume_da
 - Frontend: `resume_frontend.py`
 - Full Stack: `resume_fullstack.py`
 - Full Stack (Frontend Lead): `resume_fullstack_light_backend.py`
+- Customer Relations for `sahil@resume.com`: `resume_customer_relations.py`
 
 ## Setup
 
@@ -36,15 +37,15 @@ Hosted mode uses Supabase Auth and private Postgres JSONB records for named save
 
 PDFs are uploaded to the private `resume-pdfs` Storage bucket when the user clicks a PDF download button. The **PDF downloads** workspace lists those requests and lets the user retrieve the archived PDF again. The app can record the download request, but cannot confirm that the browser completed saving the file. Deleting a saved resume does not delete its PDF history.
 
-1. For the existing Supabase project, run `supabase/migrations/20261001000000_saved_resumes_and_pdf_history.sql` in its SQL Editor. For a new Supabase project, run `supabase/schema.sql` instead.
-2. In Supabase Auth, disable public sign-ups and create/invite the account you will use. The app also checks the account against `ALLOWED_EMAILS`.
+1. For the existing Supabase project, run `supabase/migrations/20261001000000_saved_resumes_and_pdf_history.sql`, then `supabase/migrations/20261128000000_customer_relations_variant.sql` in the SQL Editor. For a new Supabase project, run `supabase/schema.sql` instead.
+2. In Supabase Auth, enable email/password sign-ups and email confirmation. New accounts receive the generic starter template.
 3. Create a Render web service from this repository using `render.yaml`.
-4. In the Render service environment, set `SUPABASE_URL`, `SUPABASE_KEY`, `ADMIN_EMAIL`, and `ALLOWED_EMAILS`. Set `ADMIN_EMAIL` to `faiyazmd252@gmail.com`. Use the Supabase publishable key or legacy anon key for `SUPABASE_KEY`; never use the `service_role` key.
-5. Deploy the service and open its Render URL. Only allowlisted accounts can sign in; row-level security restricts draft access to the authenticated user's own row.
+4. In the Render service environment, set `SUPABASE_URL`, `SUPABASE_KEY`, `ADMIN_EMAIL`, and `SAHIL_EMAIL`. Set `ADMIN_EMAIL` to `faiyazmd252@gmail.com` and `SAHIL_EMAIL` to `sahil@resume.com`. Use the Supabase publishable key or legacy anon key for `SUPABASE_KEY`; never use the `service_role` key.
+5. Deploy the service and open its Render URL. Supabase Auth and row-level security restrict each account to its own drafts and PDF history.
 
-Render's blueprint marks these values as secrets and prompts for them during setup. Do not put real credentials in `.env.example`, source code, or Git. The app detects Render and forces Supabase mode even if `PERSISTENCE_MODE` is missing or accidentally set to `local`; it shows a configuration error rather than exposing resume data when Supabase settings are missing. Outside Render, it defaults to local mode unless `PERSISTENCE_MODE=supabase` is set. While login remains invite-only, include the admin address in `ALLOWED_EMAILS`; signup behavior is handled in the next phase.
+Render's blueprint marks these values as secrets and prompts for them during setup. Do not put real credentials in `.env.example`, source code, or Git. The app detects Render and forces Supabase mode even if `PERSISTENCE_MODE` is missing or accidentally set to `local`; it shows a configuration error rather than exposing resume data when Supabase settings are missing. Outside Render, it defaults to local mode unless `PERSISTENCE_MODE=supabase` is set.
 
-Keep the Git repository private because `resume_data.json` contains personal resume details. Render's URL is internet-reachable, but the app requires an allowlisted Supabase login before showing resume data.
+Keep the Git repository private because `resume_data.json` contains personal admin resume details. Render's URL is internet-reachable, but the app requires a confirmed Supabase account before showing resume data.
 
 ## Generate PDFs
 

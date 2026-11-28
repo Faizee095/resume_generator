@@ -1,4 +1,5 @@
 import copy
+import base64
 import json
 import os
 import re
@@ -29,6 +30,7 @@ load_dotenv(PROJECT_DIR / ".env")
 
 DATA_PATH = PROJECT_DIR / "resume_data.json"
 TEMPLATE_DATA_PATH = PROJECT_DIR / "resume_template.json"
+SAHIL_DATA_PATH = PROJECT_DIR / "sahil_resume.json"
 CUSTOM_DATA_PATH = PROJECT_DIR / "resume_custom.json"
 IS_RENDER = os.environ.get("RENDER", "").strip().lower() == "true" or bool(
     os.environ.get("RENDER_EXTERNAL_URL", "").strip()
@@ -37,15 +39,12 @@ PERSISTENCE_MODE = "supabase" if IS_RENDER else os.environ.get("PERSISTENCE_MODE
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "").strip()
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "").strip().lower()
-ALLOWED_EMAILS = {
-    email.strip().lower()
-    for email in os.environ.get("ALLOWED_EMAILS", "").split(",")
-    if email.strip()
-}
+SAHIL_EMAIL = os.environ.get("SAHIL_EMAIL", "sahil@resume.com").strip().lower()
 SCRIPT_BY_VARIANT = {
     "frontend": "resume_frontend.py",
     "fullstack": "resume_fullstack.py",
     "fullstack_frontend_lead": "resume_fullstack_light_backend.py",
+    "customer_relations": "resume_customer_relations.py",
 }
 ADD_LABELS = {
     "Links": "Add link",
@@ -74,8 +73,17 @@ def read_default_data():
     return json.loads(DATA_PATH.read_text(encoding="utf-8"))
 
 
-def read_user_template():
-    return json.loads(TEMPLATE_DATA_PATH.read_text(encoding="utf-8"))
+def read_user_template(email=None):
+    template = json.loads(TEMPLATE_DATA_PATH.read_text(encoding="utf-8"))
+    normalized_email = (email or "").strip().lower()
+    if normalized_email == SAHIL_EMAIL:
+        sahil = json.loads(SAHIL_DATA_PATH.read_text(encoding="utf-8"))
+        template["profile"] = copy.deepcopy(sahil["profile"])
+        template["education"] = copy.deepcopy(sahil["education"])
+        template["variants"]["customer_relations"] = copy.deepcopy(
+            sahil["variants"]["customer_relations"]
+        )
+    return template
 
 
 def user_role(email):
@@ -100,31 +108,65 @@ def get_supabase_client():
 
 def show_login():
     st.title("Resume Workshop")
-    st.subheader("Sign in")
-    with st.form("supabase-login"):
-        email = st.text_input("Email")
-        password = st.text_input("Password", type="password")
-        submitted = st.form_submit_button("Sign in", type="primary")
 
-    if submitted:
-        normalized_email = email.strip().lower()
-        if normalized_email != ADMIN_EMAIL and normalized_email not in ALLOWED_EMAILS:
-            st.error("This email is not authorized to use this resume workspace.")
-            return
-        try:
-            client = get_supabase_client()
-            response = client.auth.sign_in_with_password({
-                "email": normalized_email,
-                "password": password,
-            })
-            if response.user is None:
-                raise ValueError("Supabase did not return an authenticated user.")
-            st.session_state["supabase_user_id"] = response.user.id
-            st.session_state["supabase_user_email"] = response.user.email or normalized_email
-            st.session_state["supabase_user_role"] = user_role(st.session_state["supabase_user_email"])
-            st.rerun()
-        except Exception:
-            st.error("Sign-in failed. Check the credentials and Supabase Auth configuration.")
+    login_tab, signup_tab = st.tabs(["Sign in", "Create account"])
+
+    with login_tab:
+        with st.form("supabase-login"):
+            email = st.text_input("Email", key="login-email")
+            password = st.text_input("Password", type="password", key="login-password")
+            submitted = st.form_submit_button("Sign in", type="primary")
+
+        if submitted:
+            normalized_email = email.strip().lower()
+            try:
+                client = get_supabase_client()
+                response = client.auth.sign_in_with_password({
+                    "email": normalized_email,
+                    "password": password,
+                })
+                if response.user is None:
+                    raise ValueError("Supabase did not return an authenticated user.")
+                st.session_state["supabase_user_id"] = response.user.id
+                st.session_state["supabase_user_email"] = response.user.email or normalized_email
+                st.session_state["supabase_user_role"] = user_role(st.session_state["supabase_user_email"])
+                st.rerun()
+            except Exception:
+                st.error("Sign-in failed. Check the credentials and confirm the email account.")
+
+    with signup_tab:
+        with st.form("supabase-signup"):
+            signup_email = st.text_input("Email", key="signup-email")
+            signup_password = st.text_input("Password", type="password", key="signup-password")
+            signup_confirm = st.text_input("Confirm password", type="password", key="signup-confirm")
+            signup_submitted = st.form_submit_button("Create account", type="primary")
+
+        if signup_submitted:
+            normalized_email = signup_email.strip().lower()
+            if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", normalized_email):
+                st.error("Enter a valid email address.")
+            elif len(signup_password) < 8:
+                st.error("Password must be at least 8 characters.")
+            elif signup_password != signup_confirm:
+                st.error("Passwords do not match.")
+            else:
+                try:
+                    response = get_supabase_client().auth.sign_up({
+                        "email": normalized_email,
+                        "password": signup_password,
+                    })
+                    if response.user is not None:
+                        if response.session is None:
+                            st.success("Account created. Check your email and confirm the account before signing in.")
+                        else:
+                            st.session_state["supabase_user_id"] = response.user.id
+                            st.session_state["supabase_user_email"] = response.user.email or normalized_email
+                            st.session_state["supabase_user_role"] = user_role(st.session_state["supabase_user_email"])
+                            st.rerun()
+                    else:
+                        st.error("The account could not be created.")
+                except Exception:
+                    st.error("Sign-up failed. The email may already be registered or confirmation may be disabled.")
 
 
 def attach_editor_ids(data):
@@ -133,7 +175,8 @@ def attach_editor_ids(data):
         collections.extend((variant["skills"], variant["experience"], variant["projects"]))
     for collection in collections:
         for item in collection:
-            item.setdefault("_editor_id", uuid.uuid4().hex)
+            if isinstance(item, dict):
+                item.setdefault("_editor_id", uuid.uuid4().hex)
     return data
 
 
@@ -227,11 +270,20 @@ def draw_link(link, key):
 
 
 def draw_education(item, key):
-    left, right = st.columns([3, 1])
-    with left:
-        edit_text(item, "degree", "Degree or qualification", f"{key}-degree")
-    with right:
-        edit_text(item, "year", "Year", f"{key}-year")
+    if "school" in item:
+        school_column, degree_column = st.columns(2)
+        with school_column:
+            edit_text(item, "school", "School or college", f"{key}-school")
+            edit_text(item, "degree", "Qualification", f"{key}-degree")
+        with degree_column:
+            edit_text(item, "year", "Year", f"{key}-year")
+            edit_text(item, "score", "Score or grade", f"{key}-score")
+    else:
+        left, right = st.columns([3, 1])
+        with left:
+            edit_text(item, "degree", "Degree or qualification", f"{key}-degree")
+        with right:
+            edit_text(item, "year", "Year", f"{key}-year")
 
 
 def draw_skill(skill, key):
@@ -274,7 +326,14 @@ def validate_resume(data, variant_id):
         issues.append("Enter a valid email address in Contact details.")
     if not variant.get("headline", "").strip():
         issues.append("Add a headline.")
-    if not variant.get("summary", "").strip():
+    if variant_id == "customer_relations":
+        if not variant.get("objective", "").strip():
+            issues.append("Add an objective.")
+        if not variant.get("skills"):
+            issues.append("Add at least one skill.")
+        if not variant.get("achievements"):
+            issues.append("Add at least one achievement.")
+    elif not variant.get("summary", "").strip():
         issues.append("Add a summary.")
     if not re.fullmatch(r"[A-Za-z0-9 _-]+", variant.get("output_name", "")):
         issues.append("Use only letters, numbers, spaces, underscores, or hyphens in the PDF filename prefix.")
@@ -284,7 +343,7 @@ def validate_resume(data, variant_id):
         issues.append("Add at least one skill group.")
     if not variant.get("experience"):
         issues.append("Add at least one experience entry.")
-    if not variant.get("projects"):
+    if variant_id != "customer_relations" and not variant.get("projects"):
         issues.append("Add at least one project.")
 
     for index, link in enumerate(profile.get("links", []), start=1):
@@ -296,14 +355,15 @@ def validate_resume(data, variant_id):
     for index, job in enumerate(variant.get("experience", []), start=1):
         if not job.get("title", "").strip() or not job.get("company", "").strip():
             issues.append(f"Experience {index}: add both a job title and company.")
-        if not any(line.strip() for line in job.get("bullets", [])):
+        if variant_id != "customer_relations" and not any(line.strip() for line in job.get("bullets", [])):
             issues.append(f"Experience {index}: add at least one bullet.")
 
-    for index, project in enumerate(variant.get("projects", []), start=1):
-        if not project.get("title", "").strip() or not project.get("description", "").strip():
-            issues.append(f"Project {index}: add a name and description.")
-        if not any(line.strip() for line in project.get("bullets", [])):
-            issues.append(f"Project {index}: add at least one contribution.")
+    if variant_id != "customer_relations":
+        for index, project in enumerate(variant.get("projects", []), start=1):
+            if not project.get("title", "").strip() or not project.get("description", "").strip():
+                issues.append(f"Project {index}: add a name and description.")
+            if not any(line.strip() for line in project.get("bullets", [])):
+                issues.append(f"Project {index}: add at least one contribution.")
 
     return issues
 
@@ -323,7 +383,10 @@ def validate_draft_structure(data, defaults):
         raise ValueError("The saved draft does not contain the expected resume variants.")
 
     for variant_id, variant in data["variants"].items():
-        for field in ("skills", "experience", "projects"):
+        fields = ("skills", "experience", "projects")
+        if variant_id == "customer_relations":
+            fields = ("skills", "experience", "achievements")
+        for field in fields:
             if not isinstance(variant.get(field), list):
                 raise ValueError(f"The saved {variant_id} draft has invalid {field} data.")
 
@@ -546,7 +609,6 @@ if PERSISTENCE_MODE == "supabase":
             ("SUPABASE_URL", SUPABASE_URL),
             ("SUPABASE_KEY", SUPABASE_KEY),
             ("ADMIN_EMAIL", ADMIN_EMAIL),
-            ("ALLOWED_EMAILS", ALLOWED_EMAILS),
         ) if not value
     ]
     if missing_settings:
@@ -577,10 +639,11 @@ if PERSISTENCE_MODE == "supabase":
         st.session_state["supabase_user_role"] = current_role
 
 if "default_data" not in st.session_state:
-    if user_role(st.session_state.get("supabase_user_email", "")) == "admin":
+    account_email = st.session_state.get("supabase_user_email", "")
+    if user_role(account_email) == "admin":
         st.session_state["default_data"] = read_default_data()
     else:
-        st.session_state["default_data"] = read_user_template()
+        st.session_state["default_data"] = read_user_template(account_email)
 if "draft_data" not in st.session_state:
     draft, saved_signature, load_error = load_custom_draft(st.session_state["default_data"])
     st.session_state["draft_data"] = draft
@@ -642,11 +705,18 @@ if workspace == "Generate":
     default_variant = st.session_state["default_data"]["variants"][variant_id]
     st.subheader(default_variant["label"])
     st.markdown(f"**{default_variant['headline']}**")
-    st.write(default_variant["summary"])
-    metrics = st.columns(3)
-    metrics[0].metric("Skill groups", len(default_variant["skills"]))
-    metrics[1].metric("Experience entries", len(default_variant["experience"]))
-    metrics[2].metric("Projects", len(default_variant["projects"]))
+    if variant_id == "customer_relations":
+        st.write(default_variant["objective"])
+        metrics = st.columns(3)
+        metrics[0].metric("Skills", len(default_variant["skills"]))
+        metrics[1].metric("Experience entries", len(default_variant["experience"]))
+        metrics[2].metric("Achievements", len(default_variant["achievements"]))
+    else:
+        st.write(default_variant["summary"])
+        metrics = st.columns(3)
+        metrics[0].metric("Skill groups", len(default_variant["skills"]))
+        metrics[1].metric("Experience entries", len(default_variant["experience"]))
+        metrics[2].metric("Projects", len(default_variant["projects"]))
 
     payload = st.session_state["default_data"]
     render_generate_button(variant_id, payload, data_signature(payload), "Generate default PDF")
@@ -674,6 +744,26 @@ elif workspace == "Customize":
             edit_text(profile, "email", "Email", "profile-email")
             edit_text(profile, "phone", "Phone", "profile-phone")
 
+        if variant_id == "customer_relations":
+            st.subheader("Profile photo")
+            uploaded_photo = st.file_uploader(
+                "Upload a JPG, JPEG, PNG, or WebP photo",
+                type=["jpg", "jpeg", "png", "webp"],
+                key=editor_key("customer-photo-upload"),
+            )
+            if uploaded_photo:
+                encoded = base64.b64encode(uploaded_photo.getvalue()).decode("ascii")
+                profile["photo_base64"] = f"data:{uploaded_photo.type};base64,{encoded}"
+                st.image(uploaded_photo, width=180)
+            elif profile.get("photo_base64"):
+                st.image(profile["photo_base64"], width=180)
+            elif profile.get("photo_path"):
+                photo_path = Path(profile["photo_path"])
+                if not photo_path.is_absolute():
+                    photo_path = PROJECT_DIR / photo_path
+                if photo_path.exists():
+                    st.image(str(photo_path), width=180)
+
         st.subheader("Links")
         render_collection(
             profile["links"],
@@ -688,18 +778,32 @@ elif workspace == "Customize":
             draft["education"],
             "Education entries",
             "education",
-            lambda: {"degree": "", "year": ""},
+            lambda: (
+                {"school": "", "degree": "", "year": "", "score": ""}
+                if variant_id == "customer_relations"
+                else {"degree": "", "year": ""}
+            ),
             draw_education,
-            lambda item: item.get("degree", "") or "New education entry",
+            lambda item: (
+                item.get("school", "") or item.get("degree", "") or "New education entry"
+            ),
         )
         st.subheader("Resume heading")
         edit_text(variant, "headline", "Headline", f"{variant_id}-headline")
-        edit_text(variant, "summary", "Summary", f"{variant_id}-summary", multiline=True, height=130)
+        if variant_id == "customer_relations":
+            edit_text(variant, "objective", "Objective", f"{variant_id}-objective", multiline=True, height=130)
+            edit_lines(variant, "achievements", "Achievements", f"{variant_id}-achievements", height=130)
+        else:
+            edit_text(variant, "summary", "Summary", f"{variant_id}-summary", multiline=True, height=130)
         edit_text(variant, "output_name", "PDF filename prefix", f"{variant_id}-output-name")
 
     with tabs[1]:
-        st.subheader("Skill groups")
-        render_collection(
+        if variant_id == "customer_relations":
+            st.subheader("Skills")
+            edit_lines(variant, "skills", "Skills", f"{variant_id}-skills", height=130)
+        else:
+            st.subheader("Skill groups")
+            render_collection(
             variant["skills"],
             "Skill groups",
             f"{variant_id}-skills",
@@ -720,8 +824,12 @@ elif workspace == "Customize":
         )
 
     with tabs[3]:
-        st.subheader("Projects")
-        render_collection(
+        if variant_id == "customer_relations":
+            st.subheader("Projects")
+            st.info("The Customer Relations layout does not include a projects section.")
+        else:
+            st.subheader("Projects")
+            render_collection(
             variant["projects"],
             "Projects",
             f"{variant_id}-projects",
@@ -741,13 +849,22 @@ elif workspace == "Customize":
 
     with tabs[4]:
         st.subheader(variant["headline"] or "Resume preview")
-        st.write(variant["summary"])
-        st.markdown("**Skills**")
-        st.write(" · ".join(skill["label"] for skill in variant["skills"] if skill.get("label")))
-        st.markdown("**Experience**")
-        st.write(" · ".join(job["title"] for job in variant["experience"] if job.get("title")))
-        st.markdown("**Projects**")
-        st.write(" · ".join(project["title"] for project in variant["projects"] if project.get("title")))
+        if variant_id == "customer_relations":
+            st.write(variant["objective"])
+            st.markdown("**Skills**")
+            st.write(" · ".join(variant["skills"]))
+            st.markdown("**Experience**")
+            st.write(" · ".join(job["title"] for job in variant["experience"] if job.get("title")))
+            st.markdown("**Achievements**")
+            st.write(" · ".join(variant["achievements"]))
+        else:
+            st.write(variant["summary"])
+            st.markdown("**Skills**")
+            st.write(" · ".join(skill["label"] for skill in variant["skills"] if skill.get("label")))
+            st.markdown("**Experience**")
+            st.write(" · ".join(job["title"] for job in variant["experience"] if job.get("title")))
+            st.markdown("**Projects**")
+            st.write(" · ".join(project["title"] for project in variant["projects"] if project.get("title")))
 
     signature = (
         saved_resume_signature(draft, draft_name, variant_id)

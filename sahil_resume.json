@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "profile": {
+    "name": "Md Sahil Siddique",
+    "location": "",
+    "email": "siddiquemdsahil64@gmail.com",
+    "phone": "6203515505",
+    "links": [],
+    "photo_path": "assets/sahil_profile.jpg"
+  },
+  "education": [
+    {
+      "school": "Holy Mission Sr. Secondary School",
+      "degree": "Matriculate",
+      "year": "2015",
+      "score": "8.2"
+    },
+    {
+      "school": "Holy Cross Public School",
+      "degree": "Intermediate",
+      "year": "2018",
+      "score": "73"
+    },
+    {
+      "school": "LN Mishra College of Business Management",
+      "degree": "BBA",
+      "year": "2021",
+      "score": "75"
+    }
+  ],
+  "variants": {
+    "customer_relations": {
+      "label": "Customer Relations",
+      "output_name": "Md_Sahil_Siddique_Customer_Relations",
+      "headline": "Customer Relations Professional",
+      "objective": "To utilize my professional experience in banking and debt recovery, along with my knowledge of computer applications, customer handling, documentation, communication, and follow-up activities, in a suitable position where I can effectively contribute to the organization.",
+      "skills": [
+        "Interpersonal Skills",
+        "Customer Service",
+        "Negotiation",
+        "Organization Skills"
+      ],
+      "experience": [
+        {
+          "title": "Relationship Officer",
+          "company": "Axis Bank, Mithanpura Muz.",
+          "dates": "Feb. 2023 - Oct. 2023",
+          "bullets": [
+            "Responding to customer enquiries via phone or in person.",
+            "Welcoming or onboarding new clients or customers.",
+            "Identifying potential upselling or cross selling opportunities and presenting them to clients.",
+            "Collaborating with sales and marketing teams to support customer retention and acquisition strategies."
+          ]
+        },
+        {
+          "title": "DMA (Recovery Department)",
+          "company": "Bajaj Auto Credit Limited",
+          "dates": "02 June, 2025 - 08 June, 2026",
+          "bullets": []
+        }
+      ],
+      "projects": [],
+      "achievements": [
+        "Successfully retaining a high percentage of clients by understanding their needs, proactively addressing issues, and providing solutions.",
+        "Collaborating effectively with the sales team to support their efforts in acquiring new customers and achieving team targets.",
+        "Outstanding customer satisfaction."
+      ]
+    }
+  }
+}

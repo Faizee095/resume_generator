@@ -9,13 +9,23 @@ PROJECT_DIR = Path(__file__).resolve().parent
 
 
 def load_resume(variant_id):
-    data_path = Path(os.environ.get("RESUME_DATA_PATH", PROJECT_DIR / "resume_data.json"))
+    custom_data_path = os.environ.get("RESUME_DATA_PATH")
+    if custom_data_path:
+        data_path = Path(custom_data_path)
+    elif variant_id == "customer_relations":
+        data_path = PROJECT_DIR / "sahil_resume.json"
+    else:
+        data_path = PROJECT_DIR / "resume_data.json"
+
     data = json.loads(data_path.read_text(encoding="utf-8"))
     profile = data["profile"]
     education = data["education"]
     variant = data["variants"][variant_id]
 
-    required_fields = ("label", "output_name", "headline", "summary", "skills", "experience", "projects")
+    if variant_id == "customer_relations":
+        required_fields = ("label", "output_name", "headline", "objective", "skills", "experience", "achievements")
+    else:
+        required_fields = ("label", "output_name", "headline", "summary", "skills", "experience", "projects")
     missing_fields = [field for field in required_fields if field not in variant]
     if missing_fields:
         raise ValueError(f"Resume variant {variant_id!r} is missing: {', '.join(missing_fields)}")

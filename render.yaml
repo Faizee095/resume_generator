@@ -17,5 +17,5 @@ services:
         sync: false
       - key: ADMIN_EMAIL
         sync: false
-      - key: ALLOWED_EMAILS
-        sync: false
+      - key: SAHIL_EMAIL
+        value: sahil@resume.com

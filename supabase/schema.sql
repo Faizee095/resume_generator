@@ -20,7 +20,7 @@ create table if not exists public.saved_resumes (
     id uuid primary key default gen_random_uuid(),
     user_id uuid not null references auth.users (id) on delete cascade,
     name text not null check (char_length(trim(name)) between 1 and 120),
-    variant_id text not null check (variant_id in ('frontend', 'fullstack', 'fullstack_frontend_lead')),
+    variant_id text not null check (variant_id in ('frontend', 'fullstack', 'fullstack_frontend_lead', 'customer_relations')),
     data jsonb not null check (jsonb_typeof(data) = 'object'),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
@@ -56,7 +56,7 @@ create table if not exists public.resume_pdf_downloads (
     user_id uuid not null references auth.users (id) on delete cascade,
     saved_resume_id uuid references public.saved_resumes (id) on delete set null,
     resume_name text not null,
-    variant_id text not null check (variant_id in ('frontend', 'fullstack', 'fullstack_frontend_lead')),
+    variant_id text not null check (variant_id in ('frontend', 'fullstack', 'fullstack_frontend_lead', 'customer_relations')),
     filename text not null,
     storage_path text not null unique,
     download_requested_at timestamptz not null default now()
