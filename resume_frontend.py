@@ -1,3 +1,4 @@
+import os
 from xml.sax.saxutils import escape
 
 from resume_data import contact_line, load_resume, output_path, project_subtitle
@@ -11,6 +12,13 @@ from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
 
 PROFILE, EDUCATION, RESUME = load_resume("frontend")
 OUTPUT = str(output_path(RESUME))
+TEMPLATE_ID = os.environ.get("RESUME_TEMPLATE_ID", "classic")
+if TEMPLATE_ID != "classic":
+    from resume_layouts import generate_alternative_pdf
+
+    generate_alternative_pdf(PROFILE, EDUCATION, RESUME, "frontend", TEMPLATE_ID, OUTPUT)
+    print("Done:", OUTPUT)
+    raise SystemExit(0)
 
 doc = SimpleDocTemplate(
     OUTPUT,

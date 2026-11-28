@@ -1,4 +1,5 @@
 import base64
+import os
 from io import BytesIO
 from pathlib import Path
 
@@ -22,6 +23,20 @@ from resume_data import contact_line, load_resume, output_path
 
 PROFILE, EDUCATION, RESUME = load_resume("customer_relations")
 OUTPUT = str(output_path(RESUME))
+TEMPLATE_ID = os.environ.get("RESUME_TEMPLATE_ID", "classic")
+if TEMPLATE_ID != "classic":
+    from resume_layouts import generate_alternative_pdf
+
+    generate_alternative_pdf(
+        PROFILE,
+        EDUCATION,
+        RESUME,
+        "customer_relations",
+        TEMPLATE_ID,
+        OUTPUT,
+    )
+    print("Done:", OUTPUT)
+    raise SystemExit(0)
 
 
 doc = SimpleDocTemplate(

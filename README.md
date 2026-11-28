@@ -1,6 +1,6 @@
 # Resume Generator
 
-The project generates three PDF resumes from the editable defaults in `resume_data.json`:
+The project generates four PDF resume versions from editable defaults:
 
 - Frontend: `resume_frontend.py`
 - Full Stack: `resume_fullstack.py`
@@ -27,7 +27,7 @@ streamlit run app.py
 
 The editor opens at `http://localhost:8501` by default. Local mode needs no Supabase account and stores its single custom draft in the ignored `resume_custom.json` file.
 
-Choose a resume version, then select **Default data** to generate its default PDF or **Customize** to edit a custom draft and generate a customized PDF. Use **Save draft** to keep edits in the local, Git-ignored `resume_custom.json` across app restarts. The editor never changes `resume_data.json`; **Reset custom draft** removes the saved custom copy and reloads the defaults after confirmation.
+Choose a resume version and a PDF design: **Classic (current)**, **Modern**, **Elegant**, or **Compact**. The design selector applies to default, customized, and saved-draft PDF generation. Use **Customize** to edit a draft and **Save draft** to keep edits in the local, Git-ignored `resume_custom.json` across app restarts. The editor never changes `resume_data.json`; **Reset custom draft** removes the saved custom copy and reloads the defaults after confirmation.
 
 Local custom drafts are stored as JSON without encryption. Keep local mode on your own computer.
 

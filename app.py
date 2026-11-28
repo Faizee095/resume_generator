@@ -46,6 +46,12 @@ SCRIPT_BY_VARIANT = {
     "fullstack_frontend_lead": "resume_fullstack_light_backend.py",
     "customer_relations": "resume_customer_relations.py",
 }
+PDF_LAYOUTS = {
+    "Classic (current)": "classic",
+    "Modern": "modern",
+    "Elegant": "elegant",
+    "Compact": "compact",
+}
 ADD_LABELS = {
     "Links": "Add link",
     "Education entries": "Add education entry",
@@ -446,7 +452,7 @@ def save_custom_draft(data, defaults):
         raise
 
 
-def generate_pdf(variant_id, resume_data):
+def generate_pdf(variant_id, resume_data, layout_id="classic"):
     clean_data = clean_editor_ids(resume_data)
     with tempfile.TemporaryDirectory(prefix="resume-workshop-") as temporary_directory:
         temporary_path = Path(temporary_directory)
@@ -456,6 +462,7 @@ def generate_pdf(variant_id, resume_data):
         environment = os.environ.copy()
         environment["RESUME_DATA_PATH"] = str(custom_data_path)
         environment["RESUME_OUTPUT_DIR"] = str(temporary_path)
+        environment["RESUME_TEMPLATE_ID"] = layout_id
         script_path = PROJECT_DIR / SCRIPT_BY_VARIANT[variant_id]
         result = subprocess.run(
             [sys.executable, str(script_path)],
@@ -496,11 +503,15 @@ def record_download_request(user_id, artifact):
         st.session_state["pdf_history_error"] = "The PDF downloaded, but it could not be added to history."
 
 
-def render_download(variant_id, signature):
+def render_download(variant_id, signature, layout_id):
     artifact = st.session_state.get("generated_artifact")
     if not artifact:
         return
-    if artifact["variant_id"] != variant_id or artifact["signature"] != signature:
+    if (
+        artifact["variant_id"] != variant_id
+        or artifact["signature"] != signature
+        or artifact.get("layout_id") != layout_id
+    ):
         return
     st.download_button(
         "Download PDF",
@@ -520,7 +531,15 @@ def render_download(variant_id, signature):
         st.warning(history_error)
 
 
-def render_generate_button(variant_id, payload, signature, label, resume_name=None, saved_resume_id=None):
+def render_generate_button(
+    variant_id,
+    payload,
+    signature,
+    label,
+    layout_id="classic",
+    resume_name=None,
+    saved_resume_id=None,
+):
     if st.button(label, type="primary", icon=":material/picture_as_pdf:", key=f"generate-{label}"):
         issues = validate_resume(payload, variant_id)
         if issues:
@@ -530,10 +549,11 @@ def render_generate_button(variant_id, payload, signature, label, resume_name=No
             st.session_state.pop("generation_issues", None)
             try:
                 with st.spinner("Building PDF..."):
-                    filename, content = generate_pdf(variant_id, payload)
+                    filename, content = generate_pdf(variant_id, payload, layout_id)
                 st.session_state["generated_artifact"] = {
                     "variant_id": variant_id,
                     "signature": signature,
+                    "layout_id": layout_id,
                     "filename": filename,
                     "content": content,
                     "resume_name": resume_name or payload["variants"][variant_id]["label"],
@@ -545,7 +565,7 @@ def render_generate_button(variant_id, payload, signature, label, resume_name=No
 
     for issue in st.session_state.get("generation_issues", []):
         st.error(issue)
-    render_download(variant_id, signature)
+    render_download(variant_id, signature, layout_id)
 
 
 def new_record(**fields):
@@ -578,17 +598,18 @@ def open_saved_resume(resume_id):
         st.session_state["library_error"] = f"Could not open saved resume: {error}"
 
 
-def prepare_saved_resume_pdf(record):
+def prepare_saved_resume_pdf(record, layout_id):
     issues = validate_resume(record["data"], record["variant_id"])
     if issues:
         st.error("This saved resume needs attention before generating a PDF: " + " ".join(issues))
         return
     try:
         with st.spinner("Building PDF..."):
-            filename, content = generate_pdf(record["variant_id"], record["data"])
+            filename, content = generate_pdf(record["variant_id"], record["data"], layout_id)
         st.session_state["generated_artifact"] = {
             "variant_id": record["variant_id"],
             "signature": data_signature(record["data"]),
+            "layout_id": layout_id,
             "filename": filename,
             "content": content,
             "resume_name": record["name"],
@@ -693,6 +714,8 @@ with st.sidebar:
     }
     selected_label = st.selectbox("Resume version", options=list(variants_by_label), key="resume-variant")
     variant_id = variants_by_label[selected_label]
+    layout_label = st.selectbox("PDF design", options=list(PDF_LAYOUTS), key="pdf-layout")
+    layout_id = PDF_LAYOUTS[layout_label]
     workspace = st.radio(
         "Workspace",
         ["Generate", "Customize", "Saved drafts", "PDF downloads"],
@@ -719,7 +742,13 @@ if workspace == "Generate":
         metrics[2].metric("Projects", len(default_variant["projects"]))
 
     payload = st.session_state["default_data"]
-    render_generate_button(variant_id, payload, data_signature(payload), "Generate default PDF")
+    render_generate_button(
+        variant_id,
+        payload,
+        data_signature(payload),
+        "Generate default PDF",
+        layout_id=layout_id,
+    )
 elif workspace == "Customize":
     draft = st.session_state["draft_data"]
     draft_name = st.session_state.get("active_saved_resume_name", "")
@@ -1046,6 +1075,7 @@ elif workspace == "Customize":
         draft,
         signature,
         "Generate customized PDF",
+        layout_id=layout_id,
         resume_name=draft_name if PERSISTENCE_MODE == "supabase" else None,
         saved_resume_id=st.session_state.get("active_saved_resume_id"),
     )
@@ -1093,7 +1123,7 @@ elif workspace == "Saved drafts":
                             st.session_state["supabase_user_id"],
                             saved_resume["id"],
                         )
-                        prepare_saved_resume_pdf(full_record)
+                        prepare_saved_resume_pdf(full_record, layout_id)
                     except Exception as error:
                         st.error(f"Could not prepare this resume: {error}")
 
@@ -1124,7 +1154,7 @@ elif workspace == "Saved drafts":
 
                 artifact = st.session_state.get("generated_artifact")
                 if artifact and artifact.get("saved_resume_id") == saved_resume["id"]:
-                    render_download(artifact["variant_id"], artifact["signature"])
+                    render_download(artifact["variant_id"], artifact["signature"], layout_id)
 elif workspace == "PDF downloads":
     st.subheader("PDF downloads")
     if PERSISTENCE_MODE != "supabase":

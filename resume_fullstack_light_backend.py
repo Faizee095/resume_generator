@@ -1,3 +1,4 @@
+import os
 from xml.sax.saxutils import escape
 
 from reportlab.lib import colors
@@ -19,6 +20,20 @@ from resume_data import contact_line, load_resume, output_path, project_subtitle
 
 PROFILE, EDUCATION, RESUME = load_resume("fullstack_frontend_lead")
 OUTPUT = str(output_path(RESUME))
+TEMPLATE_ID = os.environ.get("RESUME_TEMPLATE_ID", "classic")
+if TEMPLATE_ID != "classic":
+    from resume_layouts import generate_alternative_pdf
+
+    generate_alternative_pdf(
+        PROFILE,
+        EDUCATION,
+        RESUME,
+        "fullstack_frontend_lead",
+        TEMPLATE_ID,
+        OUTPUT,
+    )
+    print("Done:", OUTPUT)
+    raise SystemExit(0)
 
 
 doc = SimpleDocTemplate(
