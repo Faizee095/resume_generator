@@ -17,7 +17,7 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-from resume_data import load_resume, output_path
+from resume_data import contact_line, load_resume, output_path
 
 
 PROFILE, EDUCATION, RESUME = load_resume("customer_relations")
@@ -101,10 +101,7 @@ photo = load_profile_photo(PROFILE)
 header_right = [
     Paragraph(PROFILE["name"], S_NAME),
     Spacer(1, 5),
-    Paragraph(
-        "  |  ".join(filter(None, [PROFILE.get("phone", ""), PROFILE.get("email", "")])),
-        S_CONTACT,
-    ),
+    Paragraph(contact_line(PROFILE), S_CONTACT),
 ]
 
 header_cells = []

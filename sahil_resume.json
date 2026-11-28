@@ -2,10 +2,15 @@
   "schema_version": 1,
   "profile": {
     "name": "Md Sahil Siddique",
-    "location": "",
+    "location": "Muzaffarpur",
     "email": "siddiquemdsahil64@gmail.com",
     "phone": "6203515505",
-    "links": [],
+    "links": [
+      {
+        "label": "Portfolio",
+        "url": "https://md-sahil.netlify.app/#home"
+      }
+    ],
     "photo_path": "assets/sahil_profile.jpg"
   },
   "education": [
@@ -33,37 +38,46 @@
       "label": "Customer Relations",
       "output_name": "Md_Sahil_Siddique_Customer_Relations",
       "headline": "Customer Relations Professional",
-      "objective": "To utilize my professional experience in banking and debt recovery, along with my knowledge of computer applications, customer handling, documentation, communication, and follow-up activities, in a suitable position where I can effectively contribute to the organization.",
+      "objective": "Customer relationship professional with experience in banking, customer service, onboarding, sales support, and recovery operations. Focused on listening carefully, communicating clearly, and following through to build dependable customer relationships.",
       "skills": [
-        "Interpersonal Skills",
         "Customer Service",
+        "Client Onboarding",
+        "Relationship Building",
+        "Sales Support",
         "Negotiation",
-        "Organization Skills"
+        "Follow-through",
+        "Computer Applications",
+        "Documentation"
       ],
       "experience": [
         {
           "title": "Relationship Officer",
-          "company": "Axis Bank, Mithanpura Muz.",
+          "company": "Axis Bank",
           "dates": "Feb. 2023 - Oct. 2023",
           "bullets": [
-            "Responding to customer enquiries via phone or in person.",
-            "Welcoming or onboarding new clients or customers.",
-            "Identifying potential upselling or cross selling opportunities and presenting them to clients.",
-            "Collaborating with sales and marketing teams to support customer retention and acquisition strategies."
+            "Responded to customer enquiries in person and by phone.",
+            "Welcomed and onboarded new clients.",
+            "Identified relevant cross-selling and upselling opportunities.",
+            "Worked with sales and marketing teams on customer acquisition and retention."
           ]
         },
         {
           "title": "DMA (Recovery Department)",
           "company": "Bajaj Auto Credit Limited",
-          "dates": "02 June, 2025 - 08 June, 2026",
-          "bullets": []
+          "dates": "Jun 2025 - Jun 2026",
+          "bullets": [
+            "Followed up with customers about repayments by phone and message.",
+            "Discussed repayment options and negotiated next steps with customers.",
+            "Visited customers in person as part of recovery follow-up.",
+            "Coordinated recovery cases with teammates and branches."
+          ]
         }
       ],
       "projects": [],
       "achievements": [
-        "Successfully retaining a high percentage of clients by understanding their needs, proactively addressing issues, and providing solutions.",
-        "Collaborating effectively with the sales team to support their efforts in acquiring new customers and achieving team targets.",
-        "Outstanding customer satisfaction."
+        "Retained clients by understanding their needs, addressing concerns proactively, and offering solutions.",
+        "Partnered with sales colleagues to support customer acquisition and team targets.",
+        "Contributed to strong customer satisfaction through attentive service."
       ]
     }
   }
