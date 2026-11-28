@@ -14,9 +14,9 @@ PROFILE, EDUCATION, RESUME = load_resume("frontend")
 OUTPUT = str(output_path(RESUME))
 TEMPLATE_ID = os.environ.get("RESUME_TEMPLATE_ID", "classic")
 if TEMPLATE_ID != "classic":
-    from resume_layouts import generate_alternative_pdf
+    from resume_templates import generate_template
 
-    generate_alternative_pdf(PROFILE, EDUCATION, RESUME, "frontend", TEMPLATE_ID, OUTPUT)
+    generate_template(TEMPLATE_ID, PROFILE, EDUCATION, RESUME, "frontend", OUTPUT)
     print("Done:", OUTPUT)
     raise SystemExit(0)
 

@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 from supabase import create_client
 
 from resume_data import PROJECT_DIR
+from resume_templates import template_options
 from resume_library import (
     delete_resume,
     get_pdf_download,
@@ -46,12 +47,7 @@ SCRIPT_BY_VARIANT = {
     "fullstack_frontend_lead": "resume_fullstack_light_backend.py",
     "customer_relations": "resume_customer_relations.py",
 }
-PDF_LAYOUTS = {
-    "Classic (current)": "classic",
-    "Modern": "modern",
-    "Elegant": "elegant",
-    "Compact": "compact",
-}
+PDF_LAYOUTS = template_options()
 ADD_LABELS = {
     "Links": "Add link",
     "Education entries": "Add education entry",
@@ -481,7 +477,10 @@ def generate_pdf(variant_id, resume_data, layout_id="classic"):
         if len(generated_pdfs) != 1:
             raise RuntimeError("The generator did not produce exactly one PDF.")
         pdf_path = generated_pdfs[0]
-        return pdf_path.name, pdf_path.read_bytes()
+        filename = pdf_path.name
+        if layout_id != "classic":
+            filename = f"{pdf_path.stem}_{layout_id}{pdf_path.suffix}"
+        return filename, pdf_path.read_bytes()
 
 
 def record_download_request(user_id, artifact):

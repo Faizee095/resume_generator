@@ -22,14 +22,14 @@ PROFILE, EDUCATION, RESUME = load_resume("fullstack_frontend_lead")
 OUTPUT = str(output_path(RESUME))
 TEMPLATE_ID = os.environ.get("RESUME_TEMPLATE_ID", "classic")
 if TEMPLATE_ID != "classic":
-    from resume_layouts import generate_alternative_pdf
+    from resume_templates import generate_template
 
-    generate_alternative_pdf(
+    generate_template(
+        TEMPLATE_ID,
         PROFILE,
         EDUCATION,
         RESUME,
         "fullstack_frontend_lead",
-        TEMPLATE_ID,
         OUTPUT,
     )
     print("Done:", OUTPUT)
